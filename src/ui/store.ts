@@ -96,6 +96,15 @@ export interface RouteInfo {
   rate: number;
 }
 
+export interface ContractInfo {
+  id: string;
+  npcId: string;
+  resource: ResourceId;
+  dir: "buy" | "sell";
+  qty: number;
+  everyTicks: number;
+}
+
 export interface TechInfo {
   id: string;
   name: string;
@@ -118,12 +127,14 @@ export interface GameStore {
   buildingCount: number;
   running: boolean;
   buildMode: BuildingTypeId | null;
+  clearMode: boolean;
   hover: GridPos | null;
   selected: SelectedInfo | null;
   message: string | null;
   regions: RegionInfo[];
   activeRegionId: string;
   routes: RouteInfo[];
+  contracts: ContractInfo[];
   // research / progression
   age: number;
   ageName: string;
@@ -137,10 +148,19 @@ export interface GameStore {
 
   // --- actions (replaced by the controller on start) ---
   setView: (v: ViewMode) => void;
-  npcTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell") => void;
+  npcTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number) => void;
+  setupDeal: (
+    npcId: string,
+    res: ResourceId,
+    dir: "buy" | "sell",
+    qty: number,
+    everyTicks: number,
+  ) => void;
+  cancelDeal: (id: string) => void;
   unlockSkill: (id: string) => void;
   setBuildMode: (type: BuildingTypeId) => void;
   cancelBuild: () => void;
+  toggleClear: () => void;
   deleteSelected: () => void;
   clearSelection: () => void;
   trade: (res: ResourceId, dir: "buy" | "sell") => void;
@@ -168,12 +188,14 @@ export const useGameStore = create<GameStore>((set) => ({
   buildingCount: 0,
   running: true,
   buildMode: null,
+  clearMode: false,
   hover: null,
   selected: null,
   message: null,
   regions: [],
   activeRegionId: "",
   routes: [],
+  contracts: [],
   age: 1,
   ageName: "Stone Age",
   researchPoints: 0,
@@ -186,9 +208,12 @@ export const useGameStore = create<GameStore>((set) => ({
 
   setView: (v) => set({ viewMode: v }),
   npcTrade: noop,
+  setupDeal: noop,
+  cancelDeal: noop,
   unlockSkill: noop,
   setBuildMode: noop,
   cancelBuild: noop,
+  toggleClear: noop,
   deleteSelected: noop,
   clearSelection: noop,
   trade: noop,

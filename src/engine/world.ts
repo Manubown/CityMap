@@ -27,9 +27,9 @@ import { worldLayout, type RegionDescriptor } from "./world/worldgen";
 import { makeNpcState } from "./npc/archetypes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
-// v6: M3 reshaped the world (multi-node hex map + discovery), so pre-M3 saves
-// are dropped rather than migrated (pre-release convention).
-export const STATE_VERSION = 6;
+// v6: M3 reshaped the world (multi-node hex map + discovery). v7: added standing
+// trade contracts. Mismatched saves are dropped, not migrated (pre-release).
+export const STATE_VERSION = 7;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {
@@ -204,6 +204,27 @@ export function buildingAt(region: Region, col: number, row: number): BuildingIn
   return region.buildings[tile.buildingId] ?? null;
 }
 
+/**
+ * Clear a forest or rock tile to flat dirt so it becomes buildable — vital in
+ * forest / mountain regions where open ground is scarce. Yields a little of the
+ * cleared material. Water, deposits and occupied tiles can't be cleared.
+ */
+export function clearTile(region: Region, col: number, row: number): boolean {
+  const tile = tileAt(region.map, col, row);
+  if (!tile || tile.buildingId) return false;
+  if (tile.terrain === "forest") {
+    tile.terrain = "dirt";
+    region.stock.wood += 5;
+    return true;
+  }
+  if (tile.terrain === "rock") {
+    tile.terrain = "dirt";
+    region.stock.stone += 5;
+    return true;
+  }
+  return false;
+}
+
 /** Drop a free Town Center at the region centre with its first settlers. */
 function foundTownCenter(region: Region): void {
   const cc = Math.floor(region.map.width / 2) - 1;
@@ -276,6 +297,7 @@ export function createGame(seed: number): GameState {
     regions,
     activeRegionId: "r1",
     routes: [],
+    contracts: [],
     worldSeed: seed,
     research: freshResearch(),
     skillPoints: 0,

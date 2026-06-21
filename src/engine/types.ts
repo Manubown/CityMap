@@ -188,6 +188,22 @@ export interface TradeRoute {
   rate: number;
 }
 
+/**
+ * A standing trade deal with an NPC settlement: every `everyTicks` it auto-buys
+ * or auto-sells `qty` of `resource` between your `regionId` and the NPC, at the
+ * NPC's current price. The long-term relationship version of a one-off trade.
+ */
+export interface TradeContract {
+  id: string;
+  npcId: string;
+  regionId: string; // your region the goods flow to/from
+  resource: ResourceId;
+  dir: "buy" | "sell"; // buy = import from NPC, sell = export to NPC
+  qty: number;
+  everyTicks: number;
+  nextTick: number; // tick at which it next fires
+}
+
 /** Global research/tech progression (M2). points spent on the TECHS ladder. */
 export interface ResearchState {
   age: number; // 1 = Stone, 2 = Bronze, ...
@@ -205,6 +221,8 @@ export interface GameState {
   regions: Region[];
   activeRegionId: string;
   routes: TradeRoute[];
+  /** Standing trade deals with NPC settlements (M3+). */
+  contracts: TradeContract[];
   /** Master seed for deterministic world generation. */
   worldSeed: number;
   // --- progression (schema reserved in M0a) ---

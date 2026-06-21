@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGameStore, type RegionInfo } from "./store";
+import { useGameStore, type RegionInfo, type ContractInfo } from "./store";
 import type { BiomeId, ResourceId } from "../engine/types";
 import { RESOURCES } from "../engine/economy/resources";
 
@@ -29,16 +29,20 @@ const TRADEABLE: ResourceId[] = [
   "bronze",
 ];
 
-const NPC_BATCH = 10;
+const QTYS = [1, 10, 50];
+const DEAL_INTERVAL = 20; // ticks (~5s at TICK_RATE 4)
 
 export function StrategicView() {
   const regions = useGameStore((s) => s.regions);
   const routes = useGameStore((s) => s.routes);
+  const contracts = useGameStore((s) => s.contracts);
   const coins = useGameStore((s) => s.coins);
   const setView = useGameStore((s) => s.setView);
   const switchRegion = useGameStore((s) => s.switchRegion);
   const claimRegion = useGameStore((s) => s.claimRegion);
   const npcTrade = useGameStore((s) => s.npcTrade);
+  const setupDeal = useGameStore((s) => s.setupDeal);
+  const cancelDeal = useGameStore((s) => s.cancelDeal);
   const [selId, setSelId] = useState<string | null>(null);
 
   const nodes = regions.filter((r) => r.discovered);
@@ -98,6 +102,7 @@ export function StrategicView() {
             <NodeDetail
               node={sel}
               coins={coins}
+              deals={contracts.filter((c) => c.npcId === sel.id)}
               onEnter={() => {
                 switchRegion(sel.id);
                 setView("city");
@@ -107,6 +112,8 @@ export function StrategicView() {
                 setView("city");
               }}
               onTrade={npcTrade}
+              onDeal={setupDeal}
+              onCancelDeal={cancelDeal}
             />
           )}
         </div>
@@ -118,16 +125,25 @@ export function StrategicView() {
 function NodeDetail({
   node,
   coins,
+  deals,
   onEnter,
   onClaim,
   onTrade,
+  onDeal,
+  onCancelDeal,
 }: {
   node: RegionInfo;
   coins: number;
+  deals: ContractInfo[];
   onEnter: () => void;
   onClaim: () => void;
-  onTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell") => void;
+  onTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number) => void;
+  onDeal: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number, every: number) => void;
+  onCancelDeal: (id: string) => void;
 }) {
+  const [qty, setQty] = useState(10);
+  const [dealRes, setDealRes] = useState<ResourceId>("wood");
+
   return (
     <div className="node-detail">
       <h3>{node.name}</h3>
@@ -163,6 +179,20 @@ function NodeDetail({
             <span>Reputation</span>
             <b>{node.npc.reputation}</b>
           </div>
+
+          <div className="qty-row">
+            <span>Amount</span>
+            {QTYS.map((q) => (
+              <button
+                key={q}
+                className={`qty-btn${qty === q ? " active" : ""}`}
+                onClick={() => setQty(q)}
+              >
+                ×{q}
+              </button>
+            ))}
+          </div>
+
           <div className="npc-trade">
             {TRADEABLE.map((id) => {
               const price = node.npc!.prices[id];
@@ -171,19 +201,48 @@ function NodeDetail({
                   <span className="t-glyph" title={RESOURCES[id].name}>
                     {RESOURCES[id].glyph}
                   </span>
-                  <button className="t-sell" onClick={() => onTrade(node.id, id, "sell")}>
-                    Sell +{price.sell * NPC_BATCH}
+                  <button className="t-sell" onClick={() => onTrade(node.id, id, "sell", qty)}>
+                    Sell +{price.sell * qty}
                   </button>
                   <button
                     className="t-buy"
-                    disabled={coins < price.buy * NPC_BATCH}
-                    onClick={() => onTrade(node.id, id, "buy")}
+                    disabled={coins < price.buy * qty}
+                    onClick={() => onTrade(node.id, id, "buy", qty)}
                   >
-                    Buy −{price.buy * NPC_BATCH}
+                    Buy −{price.buy * qty}
                   </button>
                 </div>
               );
             })}
+          </div>
+
+          <div className="npc-deals">
+            <div className="nd-head">📜 Standing deals (every {DEAL_INTERVAL / 4}s)</div>
+            {deals.map((d) => (
+              <div className="nd-row" key={d.id}>
+                <span>
+                  {d.dir === "sell" ? "Export" : "Import"} {d.qty} {RESOURCES[d.resource].glyph}
+                </span>
+                <button className="nd-cancel" onClick={() => onCancelDeal(d.id)}>
+                  ✕
+                </button>
+              </div>
+            ))}
+            <div className="nd-create">
+              <select value={dealRes} onChange={(e) => setDealRes(e.target.value as ResourceId)}>
+                {TRADEABLE.map((id) => (
+                  <option key={id} value={id}>
+                    {RESOURCES[id].name}
+                  </option>
+                ))}
+              </select>
+              <button onClick={() => onDeal(node.id, dealRes, "sell", qty, DEAL_INTERVAL)}>
+                Auto-sell
+              </button>
+              <button onClick={() => onDeal(node.id, dealRes, "buy", qty, DEAL_INTERVAL)}>
+                Auto-buy
+              </button>
+            </div>
           </div>
         </>
       )}

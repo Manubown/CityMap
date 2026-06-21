@@ -7,7 +7,7 @@
 import type { GameState } from "../types";
 import { emptySkillEffects, type SkillEffects } from "../skills/skilltree";
 
-export const RESEARCH_PER_POP = 0.0015; // points per villager per tick
+export const RESEARCH_PER_POP = 0.006; // points per villager per tick
 
 export function stepResearch(state: GameState, skill: SkillEffects = emptySkillEffects()): void {
   let pop = 0;

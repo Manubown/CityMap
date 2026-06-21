@@ -13,6 +13,7 @@ import { stepPopulation } from "./systems/population";
 import { stepResearch } from "./systems/research";
 import { stepSkillPoints } from "./systems/skillProgress";
 import { stepNpcEconomy } from "./systems/npcEconomy";
+import { stepContracts } from "./systems/contracts";
 import { stepRoutes } from "./systems/routes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
@@ -37,6 +38,7 @@ export function stepGame(state: GameState): void {
   stepResearch(state, skill);
   stepSkillPoints(state);
   stepNpcEconomy(state);
+  stepContracts(state);
   stepRoutes(state);
 }
 

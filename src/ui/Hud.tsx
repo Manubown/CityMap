@@ -13,6 +13,7 @@ export function Hud() {
   const tick = useGameStore((s) => s.tick);
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
+  const clearMode = useGameStore((s) => s.clearMode);
   const message = useGameStore((s) => s.message);
   const viewMode = useGameStore((s) => s.viewMode);
 
@@ -52,6 +53,9 @@ export function Hud() {
       </div>
 
       {buildMode && <div className="mode-flag panel">Building mode — Esc to cancel</div>}
+      {clearMode && (
+        <div className="mode-flag panel">🪓 Clear mode — click forest/rock · Esc to cancel</div>
+      )}
       {message && <div className="toast">{message}</div>}
     </div>
   );

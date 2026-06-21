@@ -12,6 +12,7 @@ import {
   activeRegion,
   buildingAt,
   claimRegion,
+  clearTile,
   createGame,
   getRegion,
   placeBuilding,
@@ -24,7 +25,8 @@ import { laborDemand } from "../engine/systems/production";
 import { addRoute as engineAddRoute, removeRoute as engineRemoveRoute } from "../engine/systems/routes";
 import { availableUpgrades, canUnlock, unlockUpgrade } from "../engine/buildings/upgrades";
 import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade";
-import { npcBuy, npcSell, NPC_TRADE_BATCH } from "../engine/npc/trade";
+import { npcBuy, npcSell } from "../engine/npc/trade";
+import { addContract, removeContract } from "../engine/systems/contracts";
 import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
 import {
   SKILL_TREE,
@@ -112,9 +114,29 @@ export class GameController {
   // --- input routing ------------------------------------------------------
 
   private onClickTile(tile: GridPos, _button: number): void {
-    const buildMode = useGameStore.getState().buildMode;
-    if (buildMode) this.tryPlace(buildMode, tile);
+    const { buildMode, clearMode } = useGameStore.getState();
+    if (clearMode) this.tryClear(tile);
+    else if (buildMode) this.tryPlace(buildMode, tile);
     else this.selectAt(tile);
+  }
+
+  private tryClear(tile: GridPos): void {
+    if (clearTile(this.region, tile.col, tile.row)) {
+      this.renderer.rebuildTerrain();
+      this.pushSnapshot();
+    } else {
+      this.flashMessage("Nothing to clear here");
+    }
+  }
+
+  private toggleClear(): void {
+    const next = !useGameStore.getState().clearMode;
+    if (next) {
+      this.selectedId = null;
+      this.renderer.setSelection(null);
+      this.renderer.setGhost(null);
+    }
+    useGameStore.setState({ clearMode: next, buildMode: null });
   }
 
   private onHover(tile: GridPos | null): void {
@@ -155,9 +177,10 @@ export class GameController {
         this.selectedId = null;
         this.renderer.setSelection(null);
         this.renderer.setGhost(type);
-        useGameStore.setState({ buildMode: type });
+        useGameStore.setState({ buildMode: type, clearMode: false });
       },
       cancelBuild: () => this.cancelBuild(),
+      toggleClear: () => this.toggleClear(),
       clearSelection: () => {
         this.selectedId = null;
         this.renderer.setSelection(null);
@@ -165,7 +188,9 @@ export class GameController {
       },
       deleteSelected: () => this.deleteSelected(),
       trade: (res, dir) => this.trade(res, dir),
-      npcTrade: (npcId, res, dir) => this.npcTrade(npcId, res, dir),
+      npcTrade: (npcId, res, dir, qty) => this.npcTrade(npcId, res, dir, qty),
+      setupDeal: (npcId, res, dir, qty, every) => this.setupDeal(npcId, res, dir, qty, every),
+      cancelDeal: (id) => this.cancelDeal(id),
       upgrade: (nodeId) => this.upgrade(nodeId),
       research: (techId) => this.research(techId),
       unlockSkill: (id) => this.unlockSkill(id),
@@ -184,7 +209,7 @@ export class GameController {
 
   private cancelBuild(): void {
     this.renderer.setGhost(null);
-    useGameStore.setState({ buildMode: null });
+    useGameStore.setState({ buildMode: null, clearMode: false });
   }
 
   private trade(res: ResourceId, dir: "buy" | "sell"): void {
@@ -196,14 +221,34 @@ export class GameController {
     this.pushSnapshot();
   }
 
-  private npcTrade(npcId: string, res: ResourceId, dir: "buy" | "sell"): void {
+  private npcTrade(npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number): void {
     const npc = getRegion(this.state, npcId);
     if (!npc || npc.kind !== "npc") return;
     const ok =
       dir === "buy"
-        ? npcBuy(this.state, npc, this.region, res, NPC_TRADE_BATCH)
-        : npcSell(this.state, npc, this.region, res, NPC_TRADE_BATCH);
+        ? npcBuy(this.state, npc, this.region, res, qty)
+        : npcSell(this.state, npc, this.region, res, qty);
     if (!ok) this.flashMessage(dir === "buy" ? "Not enough coins" : "Not enough to sell");
+    this.pushSnapshot();
+  }
+
+  private setupDeal(
+    npcId: string,
+    res: ResourceId,
+    dir: "buy" | "sell",
+    qty: number,
+    everyTicks: number,
+  ): void {
+    const npc = getRegion(this.state, npcId);
+    if (!npc || npc.kind !== "npc") return;
+    addContract(this.state, npcId, this.region.id, res, dir, qty, everyTicks);
+    this.flashMessage(`Deal set: ${dir} ${qty} ${res}`);
+    this.pushSnapshot();
+  }
+
+  private cancelDeal(id: string): void {
+    removeContract(this.state, id);
+    this.flashMessage("Deal cancelled");
     this.pushSnapshot();
   }
 
@@ -411,6 +456,14 @@ export class GameController {
       selected: this.buildSelectedInfo(),
       regions,
       routes,
+      contracts: this.state.contracts.map((c) => ({
+        id: c.id,
+        npcId: c.npcId,
+        resource: c.resource,
+        dir: c.dir,
+        qty: c.qty,
+        everyTicks: c.everyTicks,
+      })),
       activeRegionId: this.state.activeRegionId,
       age: this.state.research.age,
       ageName: AGE_NAMES[this.state.research.age] ?? `Age ${this.state.research.age}`,

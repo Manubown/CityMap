@@ -123,6 +123,16 @@ export class GameRenderer {
     if (this.region) this.entities.sync(this.region);
   }
 
+  /** Rebuild terrain + decoration after a tile edit (clearing), keeping camera. */
+  rebuildTerrain(): void {
+    if (!this.region) return;
+    this.world.removeChild(this.terrain);
+    this.terrain.destroy({ children: true });
+    this.terrain = buildTerrainLayer(this.region.map, (path) => this.textures.get(path));
+    this.world.addChildAt(this.terrain, 0);
+    this.entities.setDecor(this.region.map, (path) => this.textures.get(path));
+  }
+
   setGhost(type: BuildingTypeId | null): void {
     this.overlay.setGhost(type);
   }
