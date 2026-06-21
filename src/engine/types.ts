@@ -81,7 +81,9 @@ export type BuildingTypeId =
   | "copper_mine"
   | "tin_mine"
   | "smelter"
-  | "bronze_foundry";
+  | "bronze_foundry"
+  // civic
+  | "builder_hut";
 
 /** A single map tile. */
 export interface Tile {
@@ -118,6 +120,12 @@ export interface BuildingInstance {
   residents: number;
   /** Residential tier (1 = Settlers, 2 = Villagers, 3 = Citizens). */
   tier: number;
+  /** False while under construction (not yet productive). */
+  built: boolean;
+  /** Construction progress 0..1 (1 when built). */
+  buildProgress: number;
+  /** An upgrade being installed (takes builder-time before it applies). */
+  pendingUpgrade?: { nodeId: string; progress: number };
 }
 
 /** Partial stockpile delta / cost map. */

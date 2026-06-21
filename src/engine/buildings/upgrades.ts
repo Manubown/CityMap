@@ -72,6 +72,7 @@ export function canUnlock(
   b: BuildingInstance,
   node: UpgradeNode,
 ): boolean {
+  if (!b.built || b.pendingUpgrade) return false; // must be finished, one upgrade at a time
   if (b.upgrades.includes(node.id)) return false;
   if (!(node.requires ?? []).every((r) => b.upgrades.includes(r))) return false;
   if (!canAfford(region.stock, node.cost)) return false;
@@ -79,7 +80,11 @@ export function canUnlock(
   return true;
 }
 
-/** Purchase an upgrade for a building (region pays goods, treasury pays coins). */
+/**
+ * Purchase an upgrade (region pays goods, treasury pays coins). The effect does
+ * not apply immediately — it's queued as a pendingUpgrade that the construction
+ * system installs over time (builder-gated).
+ */
 export function unlockUpgrade(
   state: GameState,
   region: Region,
@@ -92,6 +97,6 @@ export function unlockUpgrade(
   if (!node || !canUnlock(region, state.coins, b, node)) return false;
   spend(region.stock, node.cost);
   state.coins -= node.coins ?? 0;
-  b.upgrades.push(nodeId);
+  b.pendingUpgrade = { nodeId, progress: 0 };
   return true;
 }

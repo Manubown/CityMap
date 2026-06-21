@@ -27,9 +27,9 @@ import { worldLayout, type RegionDescriptor } from "./world/worldgen";
 import { makeNpcState } from "./npc/archetypes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
-// v6: M3 reshaped the world (multi-node hex map + discovery). v7: added standing
-// trade contracts. Mismatched saves are dropped, not migrated (pre-release).
-export const STATE_VERSION = 7;
+// v6: M3 reshaped the world. v7: trade contracts. v8: building construction
+// state (built/buildProgress). Mismatched saves are dropped (pre-release).
+export const STATE_VERSION = 8;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {
@@ -178,6 +178,10 @@ export function placeBuilding(
     upgrades: [],
     residents: 0,
     tier: 1,
+    // placeBuilding creates a finished building (engine primitive). The
+    // controller turns an interactive player placement into a construction site.
+    built: true,
+    buildProgress: 1,
   };
   region.buildings[id] = instance;
   for (const p of footprintTiles(def, col, row)) {

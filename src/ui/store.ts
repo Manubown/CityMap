@@ -35,6 +35,9 @@ export interface SelectedInfo {
   footprint: { w: number; h: number };
   productivity: number;
   progress: number;
+  built: boolean;
+  buildProgress: number;
+  upgrading?: number; // pending-upgrade progress 0..1, if any
   recipe?: {
     inputs: ResourceMap;
     outputs: ResourceMap;

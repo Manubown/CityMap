@@ -44,6 +44,30 @@ export function SelectionPanel() {
       </div>
       <p className="sp-desc">{selected.description}</p>
 
+      {!selected.built && (
+        <div className="sp-recipe">
+          <div className="sp-status bad">🔨 Under construction…</div>
+          <div className="progress">
+            <div
+              className="progress-fill"
+              style={{ width: `${Math.round(selected.buildProgress * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {selected.upgrading != null && (
+        <div className="sp-recipe">
+          <div className="sp-status">⚙️ Installing upgrade…</div>
+          <div className="progress">
+            <div
+              className="progress-fill"
+              style={{ width: `${Math.round(selected.upgrading * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {selected.isResidence && (
         <div className="sp-recipe">
           <div className="sp-row">

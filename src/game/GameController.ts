@@ -168,7 +168,10 @@ export class GameController {
       this.flashMessage("Unlock the skill first");
       return;
     }
-    if (placeBuilding(this.region, type, tile.col, tile.row)) {
+    const placed = placeBuilding(this.region, type, tile.col, tile.row);
+    if (placed) {
+      placed.built = false; // a player build starts as a construction site
+      placed.buildProgress = 0;
       this.renderer.syncEntities();
       this.pushSnapshot();
     } else {
@@ -387,6 +390,9 @@ export class GameController {
       footprint: def.footprint,
       productivity: b.productivity,
       progress: b.progress,
+      built: b.built,
+      buildProgress: b.buildProgress,
+      upgrading: b.pendingUpgrade ? b.pendingUpgrade.progress : undefined,
       recipe: def.recipe
         ? {
             inputs: def.recipe.inputs,

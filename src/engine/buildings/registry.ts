@@ -50,6 +50,10 @@ export interface BuildingDef {
   housing?: number;
   /** Workers needed to run at full productivity (production buildings). */
   workers?: number;
+  /** Ticks of builder-work to construct (default DEFAULT_BUILD_TICKS). */
+  buildTicks?: number;
+  /** Build capacity this building provides (Builder's Hut). */
+  buildCapacity?: number;
   /** Reuse another building's sprite + manifest entry (e.g. market -> storage). */
   spriteAlias?: BuildingTypeId;
   /** Selecting this building opens the trade panel. */
@@ -427,6 +431,19 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
     housing: 4,
     upgrades: HUT_TREE,
   },
+  builder_hut: {
+    id: "builder_hut",
+    name: "Builder's Hut",
+    description: "Houses builders — speeds up construction and upgrades across the city.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 15, stone: 5 },
+    buildableOn: GROUND,
+    color: 0xb98a52,
+    spriteAlias: "storage",
+    buildCapacity: 2,
+    buildTicks: 16,
+  },
 };
 
 /** Buildings shown in the build bar, in order. Town Center is auto-placed. */
@@ -445,6 +462,7 @@ export const BUILDABLE_ORDER: BuildingTypeId[] = [
   "toolmaker",
   "smelter",
   "bronze_foundry",
+  "builder_hut",
   "storage",
   "market",
 ];
@@ -468,7 +486,11 @@ export const BUILDING_CATEGORY: Record<BuildingTypeId, BuildingCategory> = {
   bronze_foundry: "crafting",
   storage: "logistics",
   market: "logistics",
+  builder_hut: "logistics",
 };
+
+/** Default ticks to construct a building if its def doesn't specify. */
+export const DEFAULT_BUILD_TICKS = 28;
 
 export const CATEGORY_ORDER: BuildingCategory[] = [
   "housing",

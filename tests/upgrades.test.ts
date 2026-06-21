@@ -89,7 +89,9 @@ describe("building skill tree", () => {
     state.coins = 100;
     r.stock.wood = 100;
     expect(unlockUpgrade(state, r, h.id, "house1")).toBe(true);
-
+    // upgrades now install over time — not applied until construction finishes
+    expect(capacityOf(h)).toBe(before);
+    for (let i = 0; i < 40; i++) stepGame(state);
     expect(capacityOf(h)).toBeGreaterThan(before);
   });
 

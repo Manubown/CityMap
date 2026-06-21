@@ -55,7 +55,7 @@ export function capacityOf(b: BuildingInstance): number {
 export function housingCapacity(region: Region): number {
   let cap = 0;
   for (const b of Object.values(region.buildings)) {
-    if (getBuildingDef(b.type).housing) cap += capacityOf(b);
+    if (b.built && getBuildingDef(b.type).housing) cap += capacityOf(b);
   }
   return cap;
 }
@@ -78,6 +78,7 @@ export function stepPopulation(
   let coins = 0;
 
   for (const b of Object.values(region.buildings)) {
+    if (!b.built) continue; // not yet a home
     const def = getBuildingDef(b.type);
     if (!def.housing) continue;
 

@@ -13,6 +13,7 @@ import { pointerToTile } from "./picking";
 import { buildTerrainLayer, TERRAIN_SPRITE_PATHS } from "./TerrainLayer";
 import { EntityLayer, DECOR_SPRITE_PATHS } from "./EntityLayer";
 import { AgentLayer } from "./AgentLayer";
+import { StatusLayer } from "./StatusLayer";
 import { Overlay } from "./ghost";
 
 const BUILDING_IDS: BuildingTypeId[] = [
@@ -36,7 +37,9 @@ export class GameRenderer {
   private terrain = new Container();
   private entities!: EntityLayer;
   private agentLayer = new AgentLayer();
+  private statusLayer = new StatusLayer();
   private overlay = new Overlay();
+  private elapsed = 0;
   private camera!: Camera;
   private region: Region | null = null;
   private initialized = false;
@@ -73,6 +76,7 @@ export class GameRenderer {
     this.world.addChild(this.terrain);
     this.world.addChild(this.entities.container);
     this.world.addChild(this.agentLayer.container);
+    this.world.addChild(this.statusLayer.container);
     this.world.addChild(this.overlay.container);
     this.app.stage.addChild(this.world);
 
@@ -169,6 +173,8 @@ export class GameRenderer {
   }
 
   private update(dtMs: number): void {
+    this.elapsed += dtMs;
+    this.statusLayer.update(this.region, this.elapsed);
     if (!this.camera) return;
     const dt = dtMs / 1000;
     const step = (KEY_PAN_SPEED * dt) / this.camera.zoom;

@@ -8,6 +8,7 @@
  */
 
 import type { GameState } from "./types";
+import { stepConstruction } from "./systems/construction";
 import { stepProduction } from "./systems/production";
 import { stepPopulation } from "./systems/population";
 import { stepResearch } from "./systems/research";
@@ -32,6 +33,7 @@ export function stepGame(state: GameState): void {
   const skill = aggregateSkillEffects(state);
   for (const region of state.regions) {
     if (!region.claimed) continue;
+    stepConstruction(region); // finish build sites + queued upgrades first
     stepProduction(region, skill);
     state.coins += stepPopulation(region, skill); // taxes flow to the global treasury
     stepAgents(region); // cosmetic villagers — never touches the economy

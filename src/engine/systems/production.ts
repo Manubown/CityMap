@@ -24,6 +24,7 @@ function scaleMap(map: ResourceMap, factor: number): ResourceMap {
 export function laborDemand(region: Region): number {
   let demand = 0;
   for (const b of Object.values(region.buildings)) {
+    if (!b.built) continue;
     const def = getBuildingDef(b.type);
     if (def.recipe) demand += (def.workers ?? 0) * aggregateEffects(b).workersMult;
   }
@@ -59,6 +60,10 @@ export function stepProduction(region: Region, skill: SkillEffects = emptySkillE
 
   for (const id of Object.keys(region.buildings)) {
     const b = region.buildings[id];
+    if (!b.built) {
+      b.productivity = 0;
+      continue; // construction sites don't produce
+    }
     const recipe = getBuildingDef(b.type).recipe;
     if (!recipe) {
       b.productivity = 0;
