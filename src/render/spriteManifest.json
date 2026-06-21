@@ -1,0 +1,71 @@
+{
+  "buildings": {
+    "town_center": {
+      "w": 384,
+      "h": 297,
+      "anchorX": 0.4987,
+      "anchorY": 0.6229,
+      "baseW": 384
+    },
+    "hut": {
+      "w": 384,
+      "h": 374,
+      "anchorX": 0.4844,
+      "anchorY": 0.7914,
+      "baseW": 357
+    },
+    "forester": {
+      "w": 384,
+      "h": 299,
+      "anchorX": 0.4987,
+      "anchorY": 0.6054,
+      "baseW": 384
+    },
+    "gatherer": {
+      "w": 384,
+      "h": 291,
+      "anchorX": 0.5098,
+      "anchorY": 0.6254,
+      "baseW": 374
+    },
+    "quarry": {
+      "w": 384,
+      "h": 305,
+      "anchorX": 0.4987,
+      "anchorY": 0.5836,
+      "baseW": 384
+    },
+    "toolmaker": {
+      "w": 384,
+      "h": 374,
+      "anchorX": 0.5091,
+      "anchorY": 0.7594,
+      "baseW": 374
+    },
+    "storage": {
+      "w": 384,
+      "h": 307,
+      "anchorX": 0.4988,
+      "anchorY": 0.671,
+      "baseW": 380
+    }
+  },
+  "icons": {
+    "wood": {
+      "w": 128,
+      "h": 96
+    },
+    "stone": {
+      "w": 128,
+      "h": 70
+    },
+    "food": {
+      "w": 123,
+      "h": 128
+    },
+    "tools": {
+      "w": 128,
+      "h": 122
+    }
+  }
+}

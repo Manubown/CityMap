@@ -1,0 +1,24 @@
+{
+  "trees": [
+    "decor/trees/0.png",
+    "decor/trees/1.png",
+    "decor/trees/2.png",
+    "decor/trees/3.png",
+    "decor/trees/4.png",
+    "decor/trees/5.png",
+    "decor/trees/6.png",
+    "decor/trees/7.png",
+    "decor/trees/8.png",
+    "decor/trees/9.png",
+    "decor/trees/10.png",
+    "decor/trees/11.png"
+  ],
+  "rocks": [
+    "decor/rocks/0.png",
+    "decor/rocks/1.png",
+    "decor/rocks/2.png",
+    "decor/rocks/3.png",
+    "decor/rocks/4.png",
+    "decor/rocks/5.png"
+  ]
+}

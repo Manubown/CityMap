@@ -1,0 +1,24 @@
+{
+  "grass": [
+    "terrain/grass/0.png",
+    "terrain/grass/1.png"
+  ],
+  "dirt": [
+    "terrain/dirt/0.png",
+    "terrain/dirt/1.png"
+  ],
+  "forest": [
+    "terrain/forest/0.png",
+    "terrain/forest/1.png",
+    "terrain/forest/2.png",
+    "terrain/forest/3.png",
+    "terrain/forest/4.png",
+    "terrain/forest/5.png"
+  ],
+  "rock": [
+    "terrain/rock/0.png",
+    "terrain/rock/1.png",
+    "terrain/rock/2.png",
+    "terrain/rock/3.png"
+  ]
+}
