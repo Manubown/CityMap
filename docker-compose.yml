@@ -1,0 +1,26 @@
+# Coolify deployment. In Coolify: New Resource -> Docker Compose (Git based),
+# point it at this repo. Coolify builds the Dockerfile and routes your domain to
+# the service via its Traefik proxy.
+#
+# To bind a custom subdomain, either:
+#   1. Set the domain in the Coolify service UI (recommended), or
+#   2. Set SERVICE_FQDN_CITYMAP below to e.g. https://citymap.example.com
+# Coolify fills SERVICE_FQDN_CITYMAP_80 automatically and points it at port 80.
+
+services:
+  citymap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Coolify magic var: generates/binds the FQDN for this service on port 80.
+      - SERVICE_FQDN_CITYMAP_80
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
