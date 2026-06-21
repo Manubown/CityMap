@@ -5,6 +5,7 @@ import { SelectionPanel } from "./SelectionPanel";
 import { RegionTabs } from "./RegionTabs";
 import { RoutesPanel } from "./RoutesPanel";
 import { ResearchPanel } from "./ResearchPanel";
+import { StrategicView } from "./StrategicView";
 
 export function Hud() {
   const running = useGameStore((s) => s.running);
@@ -12,10 +13,14 @@ export function Hud() {
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
   const message = useGameStore((s) => s.message);
+  const viewMode = useGameStore((s) => s.viewMode);
 
   const togglePause = useGameStore((s) => s.togglePause);
   const save = useGameStore((s) => s.save);
   const newGame = useGameStore((s) => s.newGame);
+  const setView = useGameStore((s) => s.setView);
+
+  if (viewMode === "strategic") return <StrategicView />;
 
   return (
     <div className="hud">
@@ -29,6 +34,7 @@ export function Hud() {
       <div className="controls panel">
         <span className="stat">🏚 {buildingCount}</span>
         <span className="stat">⏱ {tick}</span>
+        <button onClick={() => setView("strategic")}>🗺 World</button>
         <button onClick={togglePause}>{running ? "⏸ Pause" : "▶ Resume"}</button>
         <button onClick={save}>💾 Save</button>
         <button onClick={newGame}>🌱 New</button>

@@ -440,6 +440,147 @@ button:hover {
   cursor: default;
 }
 
+/* --- strategic world map --- */
+.strategic {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 38%, #1a2a38, #0d141b);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.strat-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px;
+  padding: 10px 14px;
+}
+
+.strat-title {
+  font-weight: 700;
+}
+
+.strat-coins {
+  margin-left: auto;
+  color: #e9c46a;
+  font-weight: 700;
+}
+
+.strat-back {
+  padding: 6px 12px;
+}
+
+.strat-body {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding: 0 12px 12px;
+  min-height: 0;
+}
+
+.strat-map {
+  flex: 1;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 12px;
+}
+
+.strat-route {
+  stroke: #5fd3a3;
+  stroke-width: 4;
+  stroke-dasharray: 8 6;
+  opacity: 0.8;
+}
+
+.strat-node {
+  cursor: pointer;
+}
+
+.strat-node circle {
+  stroke: rgba(0, 0, 0, 0.4);
+  stroke-width: 3;
+}
+
+.strat-node.player circle {
+  stroke: #5fd3a3;
+}
+
+.strat-node.site circle {
+  stroke: #e9c46a;
+  stroke-dasharray: 6 5;
+}
+
+.strat-node.npc circle {
+  stroke: #6fa8dc;
+}
+
+.strat-node.selected circle {
+  stroke-width: 5;
+}
+
+.strat-node.active circle {
+  stroke: #ffffff;
+}
+
+.node-icon {
+  font-size: 30px;
+}
+
+.node-label {
+  font-size: 15px;
+  fill: #e7eef6;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #0d141b;
+  stroke-width: 3px;
+}
+
+.strat-panel {
+  width: 300px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.node-detail h3 {
+  margin: 0 0 10px;
+}
+
+.tech-btn.enter,
+.buy-city {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+}
+
+.buy-city {
+  border-color: rgba(233, 196, 106, 0.5);
+  background: rgba(233, 196, 106, 0.14);
+  color: #f0d68a;
+  font-weight: 600;
+}
+
+.buy-city:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.npc-trade {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.npc-trade .trade-row {
+  grid-template-columns: 24px 1fr 1fr;
+}
+
+.t-glyph {
+  font-size: 18px;
+}
+
 /* --- region tabs --- */
 .region-tabs {
   position: absolute;

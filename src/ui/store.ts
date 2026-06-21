@@ -13,6 +13,7 @@ import type {
   RegionKind,
   ResourceId,
   ResourceMap,
+  WorldCoord,
 } from "../engine/types";
 import { emptyStock } from "../engine/economy/resources";
 
@@ -65,7 +66,12 @@ export interface RegionInfo {
   biome: BiomeId;
   kind: RegionKind;
   discovered: boolean;
+  worldPos: WorldCoord;
+  /** Present for NPC settlements: their reputation + current prices. */
+  npc?: { reputation: number; prices: Record<ResourceId, { buy: number; sell: number }> };
 }
+
+export type ViewMode = "city" | "strategic";
 
 export interface RouteInfo {
   id: string;
@@ -112,8 +118,11 @@ export interface GameStore {
   completedTechs: string[];
   unlockedSkills: string[];
   techs: TechInfo[];
+  viewMode: ViewMode;
 
   // --- actions (replaced by the controller on start) ---
+  setView: (v: ViewMode) => void;
+  npcTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell") => void;
   setBuildMode: (type: BuildingTypeId) => void;
   cancelBuild: () => void;
   deleteSelected: () => void;
@@ -132,7 +141,7 @@ export interface GameStore {
 
 const noop = (): void => {};
 
-export const useGameStore = create<GameStore>(() => ({
+export const useGameStore = create<GameStore>((set) => ({
   stock: emptyStock(),
   coins: 0,
   population: 0,
@@ -155,7 +164,10 @@ export const useGameStore = create<GameStore>(() => ({
   completedTechs: [],
   unlockedSkills: [],
   techs: [],
+  viewMode: "city",
 
+  setView: (v) => set({ viewMode: v }),
+  npcTrade: noop,
   setBuildMode: noop,
   cancelBuild: noop,
   deleteSelected: noop,

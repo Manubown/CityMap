@@ -24,6 +24,7 @@ import { laborDemand } from "../engine/systems/production";
 import { addRoute as engineAddRoute, removeRoute as engineRemoveRoute } from "../engine/systems/routes";
 import { availableUpgrades, canUnlock, unlockUpgrade } from "../engine/buildings/upgrades";
 import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade";
+import { npcBuy, npcSell, NPC_TRADE_BATCH } from "../engine/npc/trade";
 import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
 import type { BuildingTypeId, GameState, GridPos, Region, ResourceId } from "../engine/types";
 import { useGameStore, type SelectedInfo } from "../ui/store";
@@ -146,6 +147,7 @@ export class GameController {
       },
       deleteSelected: () => this.deleteSelected(),
       trade: (res, dir) => this.trade(res, dir),
+      npcTrade: (npcId, res, dir) => this.npcTrade(npcId, res, dir),
       upgrade: (nodeId) => this.upgrade(nodeId),
       research: (techId) => this.research(techId),
       switchRegion: (id) => this.switchRegion(id),
@@ -171,6 +173,17 @@ export class GameController {
       dir === "buy"
         ? buyResource(this.state, this.region, res, TRADE_BATCH)
         : sellResource(this.state, this.region, res, TRADE_BATCH);
+    if (!ok) this.flashMessage(dir === "buy" ? "Not enough coins" : "Not enough to sell");
+    this.pushSnapshot();
+  }
+
+  private npcTrade(npcId: string, res: ResourceId, dir: "buy" | "sell"): void {
+    const npc = getRegion(this.state, npcId);
+    if (!npc || npc.kind !== "npc") return;
+    const ok =
+      dir === "buy"
+        ? npcBuy(this.state, npc, this.region, res, NPC_TRADE_BATCH)
+        : npcSell(this.state, npc, this.region, res, NPC_TRADE_BATCH);
     if (!ok) this.flashMessage(dir === "buy" ? "Not enough coins" : "Not enough to sell");
     this.pushSnapshot();
   }
@@ -316,6 +329,8 @@ export class GameController {
       biome: r.biome,
       kind: r.kind,
       discovered: r.discovered,
+      worldPos: r.worldPos,
+      npc: r.npc ? { reputation: r.npc.reputation, prices: r.npc.prices } : undefined,
     }));
     const routes = this.state.routes.map((rt) => ({
       id: rt.id,
