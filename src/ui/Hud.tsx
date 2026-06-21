@@ -10,19 +10,17 @@ import { SkillTreeView } from "./SkillTreeView";
 import { StatsView } from "./StatsView";
 import { InstructionCard } from "./InstructionCard";
 import { ClockPanel } from "./ClockPanel";
+import { SettingsModal, SpeedControls } from "./SettingsModal";
 
 export function Hud() {
-  const running = useGameStore((s) => s.running);
-  const tick = useGameStore((s) => s.tick);
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
   const clearMode = useGameStore((s) => s.clearMode);
   const message = useGameStore((s) => s.message);
   const viewMode = useGameStore((s) => s.viewMode);
 
-  const togglePause = useGameStore((s) => s.togglePause);
   const save = useGameStore((s) => s.save);
-  const newGame = useGameStore((s) => s.newGame);
+  const toggleMenu = useGameStore((s) => s.toggleMenu);
   const setView = useGameStore((s) => s.setView);
 
   if (viewMode === "strategic") return <StrategicView />;
@@ -41,19 +39,23 @@ export function Hud() {
 
       <div className="controls panel">
         <span className="stat">🏚 {buildingCount}</span>
-        <span className="stat">⏱ {tick}</span>
         <button onClick={() => setView("strategic")}>🗺 World</button>
         <button onClick={() => setView("stats")}>📊 Stats</button>
         <button onClick={() => setView("skills")}>🌟 Skills</button>
-        <button onClick={togglePause}>{running ? "⏸ Pause" : "▶ Resume"}</button>
-        <button onClick={save}>💾 Save</button>
-        <button onClick={newGame}>🌱 New</button>
+        <SpeedControls />
+        <button onClick={save} title="Quick save">
+          💾
+        </button>
+        <button onClick={toggleMenu} title="Menu">
+          ⚙️
+        </button>
       </div>
 
       <SelectionPanel />
       <BuildBar />
 
       <InstructionCard />
+      <SettingsModal />
 
       {buildMode && (
         <div className="mode-flag panel">Building — R to rotate the door · Esc to cancel</div>

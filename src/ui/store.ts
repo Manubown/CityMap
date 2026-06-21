@@ -16,6 +16,7 @@ import type {
   WorldCoord,
 } from "../engine/types";
 import { emptyStock } from "../engine/economy/resources";
+import type { SaveSlot } from "../engine/save/persistence";
 
 export interface UpgradeOption {
   id: string;
@@ -139,6 +140,8 @@ export interface GameStore {
   tick: number;
   buildingCount: number;
   running: boolean;
+  gameSpeed: number;
+  menuOpen: boolean;
   buildMode: BuildingTypeId | null;
   clearMode: boolean;
   infoHidden: boolean;
@@ -197,6 +200,10 @@ export interface GameStore {
   save: () => void;
   newGame: () => void;
   togglePause: () => void;
+  setSpeed: (n: number) => void;
+  toggleMenu: () => void;
+  saveSlot: (slot: SaveSlot) => void;
+  loadSlot: (slot: SaveSlot) => void;
 }
 
 const noop = (): void => {};
@@ -211,6 +218,8 @@ export const useGameStore = create<GameStore>((set) => ({
   tick: 0,
   buildingCount: 0,
   running: true,
+  gameSpeed: 1,
+  menuOpen: false,
   buildMode: null,
   clearMode: false,
   infoHidden: false,
@@ -260,4 +269,8 @@ export const useGameStore = create<GameStore>((set) => ({
   save: noop,
   newGame: noop,
   togglePause: noop,
+  setSpeed: noop,
+  toggleMenu: () => set((s) => ({ menuOpen: !s.menuOpen })),
+  saveSlot: noop,
+  loadSlot: noop,
 }));

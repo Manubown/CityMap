@@ -1253,6 +1253,72 @@ button:hover {
   border-color: var(--accent);
 }
 
+/* --- speed control + settings menu --- */
+.speed-ctrl {
+  display: flex;
+  gap: 2px;
+}
+
+.speed-ctrl button {
+  padding: 6px 8px;
+  min-width: 30px;
+}
+
+.speed-ctrl button.active {
+  background: rgba(95, 211, 163, 0.2);
+  border-color: var(--accent);
+}
+
+.menu-card {
+  width: 360px;
+  padding: 20px 22px;
+}
+
+.menu-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-head h2 {
+  margin: 0;
+}
+
+.menu-card h4 {
+  margin: 16px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.save-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+.save-row small {
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.save-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.save-btns button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.menu-card .danger {
+  margin-top: 14px;
+}
+
 .mode-flag {
   position: absolute;
   bottom: 96px;

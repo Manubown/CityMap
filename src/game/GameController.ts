@@ -23,7 +23,7 @@ import {
   removeBuilding,
 } from "../engine/world";
 import { getBuildingDef } from "../engine/buildings/registry";
-import { clearSave, loadGame, saveGame } from "../engine/save/persistence";
+import { clearSave, loadGame, saveGame, type SaveSlot } from "../engine/save/persistence";
 import { housingCapacity, capacityOf, tierOf } from "../engine/systems/population";
 import { laborDemand } from "../engine/systems/production";
 import { addRoute as engineAddRoute, removeRoute as engineRemoveRoute } from "../engine/systems/routes";
@@ -68,6 +68,7 @@ export class GameController {
   private state!: GameState;
   private selectedId: string | null = null;
   private buildFacing = 0;
+  private speed = 1;
   private pushAccum = 0;
   private autosaveAccum = 0;
   private messageTimer: ReturnType<typeof setTimeout> | null = null;
@@ -108,7 +109,7 @@ export class GameController {
   // --- frame / sim --------------------------------------------------------
 
   private onFrame(dtMs: number): void {
-    this.clock.advance(dtMs, () => stepGame(this.state));
+    this.clock.advance(dtMs * this.speed, () => stepGame(this.state));
     this.renderer.updateAgents(this.clock.fraction());
     this.renderer.setDayNight(this.state.tick);
 
@@ -230,7 +231,36 @@ export class GameController {
         this.clock.setRunning(!this.clock.isRunning());
         useGameStore.setState({ running: this.clock.isRunning() });
       },
+      setSpeed: (n) => {
+        this.speed = n;
+        if (!this.clock.isRunning()) this.clock.setRunning(true);
+        useGameStore.setState({ gameSpeed: n, running: true });
+      },
+      saveSlot: (slot) => this.saveSlot(slot),
+      loadSlot: (slot) => this.loadSlot(slot),
     });
+  }
+
+  private saveSlot(slot: SaveSlot): void {
+    void saveGame(this.state, slot).then(() =>
+      this.flashMessage(slot === "auto" ? "Game saved" : `Saved to slot ${slot}`),
+    );
+  }
+
+  private async loadSlot(slot: SaveSlot): Promise<void> {
+    const loaded = await loadGame(slot);
+    if (!loaded) {
+      this.flashMessage("That slot is empty or incompatible");
+      return;
+    }
+    this.state = loaded;
+    this.selectedId = null;
+    this.cancelBuild();
+    this.renderer.attachRegion(this.region);
+    this.renderer.setSelection(null);
+    useGameStore.setState({ menuOpen: false });
+    this.pushSnapshot();
+    this.flashMessage(slot === "auto" ? "Autosave loaded" : `Loaded slot ${slot}`);
   }
 
   private cancelBuild(): void {
@@ -521,6 +551,7 @@ export class GameController {
       tick: this.state.tick,
       buildingCount: Object.keys(region.buildings).length,
       running: this.clock.isRunning(),
+      gameSpeed: this.speed,
       selected: this.buildSelectedInfo(),
       canTrade: this.hasMarket(region),
       flows: this.buildFlows(region),
