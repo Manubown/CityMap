@@ -12,6 +12,7 @@ import { Camera, type WorldBounds } from "./camera";
 import { pointerToTile } from "./picking";
 import { buildTerrainLayer, TERRAIN_SPRITE_PATHS } from "./TerrainLayer";
 import { EntityLayer, DECOR_SPRITE_PATHS } from "./EntityLayer";
+import { AgentLayer } from "./AgentLayer";
 import { Overlay } from "./ghost";
 
 const BUILDING_IDS: BuildingTypeId[] = [
@@ -34,6 +35,7 @@ export class GameRenderer {
   private world = new Container();
   private terrain = new Container();
   private entities!: EntityLayer;
+  private agentLayer = new AgentLayer();
   private overlay = new Overlay();
   private camera!: Camera;
   private region: Region | null = null;
@@ -70,6 +72,7 @@ export class GameRenderer {
 
     this.world.addChild(this.terrain);
     this.world.addChild(this.entities.container);
+    this.world.addChild(this.agentLayer.container);
     this.world.addChild(this.overlay.container);
     this.app.stage.addChild(this.world);
 
@@ -109,6 +112,7 @@ export class GameRenderer {
     this.entities.clear();
     this.entities.sync(region);
     this.entities.setDecor(region.map, (path) => this.textures.get(path));
+    this.agentLayer.clear();
     this.overlay.attach(region);
 
     const bounds = this.worldBounds(region);
@@ -121,6 +125,11 @@ export class GameRenderer {
   /** Re-sync the building graphics from the active region (after place/remove). */
   syncEntities(): void {
     if (this.region) this.entities.sync(this.region);
+  }
+
+  /** Reposition villager dots, interpolated by the sim-clock fraction (0..1). */
+  updateAgents(fraction: number): void {
+    this.agentLayer.update(this.region, fraction);
   }
 
   /** Rebuild terrain + decoration after a tile edit (clearing), keeping camera. */

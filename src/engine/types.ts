@@ -128,11 +128,25 @@ export type ResourceMap = Partial<Record<ResourceId, number>>;
  * population — agents never own economy. `path` is recomputed on load, never
  * serialized. (Reserved here; behaviour lands in M6.)
  */
+export type AgentState = "home" | "toWork" | "working" | "toHome";
+
+/**
+ * A visible villager (M6). A cosmetic projection of the aggregate population —
+ * it never touches the economy. Serialisable: the path is NOT stored (recomputed
+ * deterministically); only the current tile, the next tile, and progress along
+ * the step between them, so saves reproduce exactly.
+ */
 export interface Agent {
   id: number;
-  role: string;
-  col: number;
+  role: string; // workplace building type, or "resident"
+  homeId: string;
+  workId: string | null;
+  col: number; // current tile
   row: number;
+  ncol: number; // next tile being walked to
+  nrow: number;
+  progress: number; // 0..1 between (col,row) and (ncol,nrow)
+  state: AgentState;
 }
 
 /** An NPC settlement's trading state (M3). Reserved here; behaviour in M3. */

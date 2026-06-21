@@ -97,6 +97,7 @@ export class GameController {
 
   private onFrame(dtMs: number): void {
     this.clock.advance(dtMs, () => stepGame(this.state));
+    this.renderer.updateAgents(this.clock.fraction());
 
     this.pushAccum += dtMs;
     if (this.pushAccum >= STORE_PUSH_MS) {

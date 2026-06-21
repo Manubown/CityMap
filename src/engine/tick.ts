@@ -15,6 +15,7 @@ import { stepSkillPoints } from "./systems/skillProgress";
 import { stepNpcEconomy } from "./systems/npcEconomy";
 import { stepContracts } from "./systems/contracts";
 import { stepRoutes } from "./systems/routes";
+import { stepAgents } from "./systems/agents";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
 export const TICK_RATE = 4; // simulation ticks per second
@@ -33,7 +34,7 @@ export function stepGame(state: GameState): void {
     if (!region.claimed) continue;
     stepProduction(region, skill);
     state.coins += stepPopulation(region, skill); // taxes flow to the global treasury
-    // [M6] stepAgents(region) inserts here.
+    stepAgents(region); // cosmetic villagers — never touches the economy
   }
   stepResearch(state, skill);
   stepSkillPoints(state);
