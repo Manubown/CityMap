@@ -70,3 +70,27 @@ export function deposit(stock: Record<ResourceId, number>, delta: ResourceMap): 
     stock[r] += delta[r] ?? 0;
   }
 }
+
+/**
+ * Goods that satisfy a villager's "food" need (consumed in this order). Lets
+ * every biome have a distinct food source — gathered food, farmed grain, hunted
+ * game — all feeding the same population.
+ */
+export const FOOD_GROUP: ResourceId[] = ["food", "grain", "game"];
+
+/** Total available food across the food group. */
+export function totalFood(stock: Record<ResourceId, number>): number {
+  return FOOD_GROUP.reduce((s, r) => s + stock[r], 0);
+}
+
+/** Consume up to `amount` of food (food -> grain -> game). Returns amount consumed. */
+export function consumeFood(stock: Record<ResourceId, number>, amount: number): number {
+  let remaining = amount;
+  for (const r of FOOD_GROUP) {
+    if (remaining <= 0) break;
+    const take = Math.min(stock[r], remaining);
+    stock[r] -= take;
+    remaining -= take;
+  }
+  return amount - remaining;
+}

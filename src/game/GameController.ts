@@ -292,6 +292,7 @@ export class GameController {
       claimCost: r.claimCost,
       population: Math.floor(r.population),
       active: r.id === this.state.activeRegionId,
+      biome: r.biome,
     }));
     const routes = this.state.routes.map((rt) => ({
       id: rt.id,

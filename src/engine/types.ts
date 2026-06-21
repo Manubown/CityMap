@@ -67,7 +67,13 @@ export type BuildingTypeId =
   | "storage"
   | "toolmaker"
   | "market"
-  | "hut";
+  | "hut"
+  // biome extractors (M1)
+  | "farm"
+  | "hunter"
+  | "reed_cutter"
+  | "sand_pit"
+  | "miner";
 
 /** A single map tile. */
 export interface Tile {

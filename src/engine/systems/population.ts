@@ -13,6 +13,7 @@
 import type { Region, BuildingInstance, ResourceId, ResourceMap } from "../types";
 import { getBuildingDef } from "../buildings/registry";
 import { aggregateEffects } from "../buildings/upgrades";
+import { consumeFood, totalFood } from "../economy/resources";
 
 export const POP_GROWTH = 0.03;
 export const POP_STARVE = 0.025;
@@ -81,8 +82,8 @@ export function stepPopulation(region: Region): number {
     const cap = (def.housing + eff.housingAdd) * tier.capacityMult;
     const foodNeed = b.residents * (tier.needs.food ?? 0);
 
-    if (region.stock.food >= foodNeed) {
-      region.stock.food -= foodNeed;
+    if (totalFood(region.stock) >= foodNeed) {
+      consumeFood(region.stock, foodNeed);
 
       let comfortMet = true;
       for (const r of comfortKeys(tier)) {
@@ -102,7 +103,7 @@ export function stepPopulation(region: Region): number {
         if (b.tier > 1) b.residents = Math.max(0, b.residents - POP_GROWTH * 0.5);
       }
     } else {
-      region.stock.food = Math.max(0, region.stock.food - foodNeed);
+      consumeFood(region.stock, totalFood(region.stock)); // eat whatever's left
       b.residents = Math.max(0, b.residents - POP_STARVE);
       if (b.tier > 1) {
         const prevCap = (def.housing + eff.housingAdd) * TIERS[b.tier - 2].capacityMult;

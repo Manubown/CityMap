@@ -17,7 +17,10 @@ export function RegionTabs() {
             className={`region-tab${r.active ? " active" : ""}`}
             onClick={() => switchRegion(r.id)}
           >
-            🏙 {r.name} <small>👥 {r.population}</small>
+            🏙 {r.name}{" "}
+            <small>
+              {r.biome} · 👥 {r.population}
+            </small>
           </button>
         ) : (
           <button
