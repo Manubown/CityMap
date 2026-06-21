@@ -140,6 +140,13 @@ export interface GameStore {
   routes: RouteInfo[];
   contracts: ContractInfo[];
   canTrade: boolean;
+  // time of day / calendar
+  timeHour: number;
+  timeMinute: number;
+  dayNum: number;
+  monthNum: number;
+  dayOfMonth: number;
+  isNight: boolean;
   // research / progression
   age: number;
   ageName: string;
@@ -174,7 +181,7 @@ export interface GameStore {
   research: (techId: string) => void;
   switchRegion: (id: string) => void;
   claimRegion: (id: string) => void;
-  addRoute: (from: string, to: string, res: ResourceId) => void;
+  addRoute: (from: string, to: string, res: ResourceId, rate: number) => void;
   removeRoute: (id: string) => void;
   save: () => void;
   newGame: () => void;
@@ -204,6 +211,12 @@ export const useGameStore = create<GameStore>((set) => ({
   routes: [],
   contracts: [],
   canTrade: false,
+  timeHour: 6,
+  timeMinute: 0,
+  dayNum: 1,
+  monthNum: 1,
+  dayOfMonth: 1,
+  isNight: false,
   age: 1,
   ageName: "Stone Age",
   researchPoints: 0,

@@ -8,6 +8,7 @@
 import { Application, Assets, Container, type Texture } from "pixi.js";
 import type { BuildingTypeId, GridPos, Region } from "../engine/types";
 import { TILE_W, TILE_H, gridToScreen } from "../engine/iso";
+import { dayTint } from "../engine/time";
 import { Camera, type WorldBounds } from "./camera";
 import { pointerToTile } from "./picking";
 import { buildTerrainLayer, TERRAIN_SPRITE_PATHS } from "./TerrainLayer";
@@ -134,6 +135,11 @@ export class GameRenderer {
   /** Reposition villager dots, interpolated by the sim-clock fraction (0..1). */
   updateAgents(fraction: number): void {
     this.agentLayer.update(this.region, fraction);
+  }
+
+  /** Tint the world for the time of day (day/night cycle). */
+  setDayNight(tick: number): void {
+    this.world.tint = dayTint(tick);
   }
 
   /** Rebuild terrain + decoration after a tile edit (clearing), keeping camera. */

@@ -30,6 +30,7 @@ import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade"
 import { npcBuy, npcSell } from "../engine/npc/trade";
 import { addContract, removeContract } from "../engine/systems/contracts";
 import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
+import { clockHM, calendar, isNight } from "../engine/time";
 import {
   SKILL_TREE,
   aggregateSkillEffects,
@@ -105,6 +106,7 @@ export class GameController {
   private onFrame(dtMs: number): void {
     this.clock.advance(dtMs, () => stepGame(this.state));
     this.renderer.updateAgents(this.clock.fraction());
+    this.renderer.setDayNight(this.state.tick);
 
     this.pushAccum += dtMs;
     if (this.pushAccum >= STORE_PUSH_MS) {
@@ -213,7 +215,7 @@ export class GameController {
       unlockSkill: (id) => this.unlockSkill(id),
       switchRegion: (id) => this.switchRegion(id),
       claimRegion: (id) => this.claim(id),
-      addRoute: (from, to, res) => this.addRoute(from, to, res),
+      addRoute: (from, to, res, rate) => this.addRoute(from, to, res, rate),
       removeRoute: (id) => this.removeRoute(id),
       save: () => void saveGame(this.state).then(() => this.flashMessage("Game saved")),
       newGame: () => this.newGame(),
@@ -351,8 +353,9 @@ export class GameController {
     }
   }
 
-  private addRoute(from: string, to: string, res: ResourceId): void {
-    if (engineAddRoute(this.state, from, to, res, ROUTE_RATE)) this.pushSnapshot();
+  private addRoute(from: string, to: string, res: ResourceId, rate: number): void {
+    const r = rate > 0 ? rate : ROUTE_RATE;
+    if (engineAddRoute(this.state, from, to, res, r)) this.pushSnapshot();
     else this.flashMessage("That route already exists");
   }
 
@@ -500,6 +503,12 @@ export class GameController {
         everyTicks: c.everyTicks,
       })),
       activeRegionId: this.state.activeRegionId,
+      timeHour: clockHM(this.state.tick).hour,
+      timeMinute: clockHM(this.state.tick).minute,
+      dayNum: calendar(this.state.tick).day,
+      monthNum: calendar(this.state.tick).month,
+      dayOfMonth: calendar(this.state.tick).dayOfMonth,
+      isNight: isNight(this.state.tick),
       age: this.state.research.age,
       ageName: AGE_NAMES[this.state.research.age] ?? `Age ${this.state.research.age}`,
       researchPoints: Math.floor(this.state.research.points),

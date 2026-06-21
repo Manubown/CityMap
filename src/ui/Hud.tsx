@@ -7,6 +7,8 @@ import { RoutesPanel } from "./RoutesPanel";
 import { ResearchPanel } from "./ResearchPanel";
 import { StrategicView } from "./StrategicView";
 import { SkillTreeView } from "./SkillTreeView";
+import { InstructionCard } from "./InstructionCard";
+import { ClockPanel } from "./ClockPanel";
 
 export function Hud() {
   const running = useGameStore((s) => s.running);
@@ -14,7 +16,6 @@ export function Hud() {
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
   const clearMode = useGameStore((s) => s.clearMode);
-  const selected = useGameStore((s) => s.selected);
   const message = useGameStore((s) => s.message);
   const viewMode = useGameStore((s) => s.viewMode);
 
@@ -29,6 +30,7 @@ export function Hud() {
   return (
     <div className="hud">
       <ResourceBar />
+      <ClockPanel />
       <RegionTabs />
       <div className="left-stack">
         <ResearchPanel />
@@ -48,12 +50,7 @@ export function Hud() {
       <SelectionPanel />
       <BuildBar />
 
-      {!selected && (
-        <div className="hint panel">
-          Drag / WASD to pan · wheel to zoom · pick a building below, click to place ·
-          right-click to cancel
-        </div>
-      )}
+      <InstructionCard />
 
       {buildMode && <div className="mode-flag panel">Building mode — Esc to cancel</div>}
       {clearMode && (

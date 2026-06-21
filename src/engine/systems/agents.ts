@@ -10,6 +10,7 @@ import type { Agent, BuildingInstance, GridPos, Region } from "../types";
 import { getBuildingDef } from "../buildings/registry";
 import { tileAt } from "../map/generate";
 import { nextStep } from "./pathfind";
+import { dayFraction } from "../time";
 
 export const DAY_LENGTH = 240; // ticks per day-cycle (~60s at TICK_RATE 4)
 export const AGENT_CAP = 60; // villagers shown per region
@@ -112,6 +113,8 @@ function advance(region: Region, a: Agent, workTime: boolean): void {
 export function stepAgents(region: Region): void {
   region.dayTick = (region.dayTick + 1) % DAY_LENGTH;
   syncCount(region);
-  const workTime = region.dayTick < DAY_LENGTH * 0.62;
+  // Work during daylight (~07:00–19:00), sleep at home through the night.
+  const f = dayFraction(region.dayTick);
+  const workTime = f > 0.28 && f < 0.8;
   for (const a of region.agents) advance(region, a, workTime);
 }

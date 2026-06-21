@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useGameStore } from "./store";
 import { RESOURCE_ORDER, RESOURCES } from "../engine/economy/resources";
+import { TICK_RATE } from "../engine/tick";
 import type { ResourceId } from "../engine/types";
+
+const RATE_OPTIONS = [1, 2, 5, 10]; // units per second
 
 export function RoutesPanel() {
   const regions = useGameStore((s) => s.regions);
@@ -12,6 +15,7 @@ export function RoutesPanel() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [res, setRes] = useState<ResourceId>("wood");
+  const [rate, setRate] = useState(2); // per second
 
   const claimed = regions.filter((r) => r.claimed);
   // Only useful once you have 2+ regions to move goods between.
@@ -33,7 +37,8 @@ export function RoutesPanel() {
           {routes.map((rt) => (
             <div className="route-row" key={rt.id}>
               <span className="route-text">
-                {rt.fromName} → {rt.toName}: {RESOURCES[rt.resource].glyph}
+                {rt.fromName} → {rt.toName}: {RESOURCES[rt.resource].glyph}{" "}
+                {Math.round(rt.rate * TICK_RATE * 10) / 10}/s
               </span>
               <button className="route-del" onClick={() => removeRoute(rt.id)} title="Remove">
                 ✕
@@ -65,7 +70,17 @@ export function RoutesPanel() {
                   </option>
                 ))}
               </select>
-              <button className="route-add-btn" onClick={() => f && t && f !== t && addRoute(f, t, res)}>
+              <select value={rate} onChange={(e) => setRate(Number(e.target.value))} title="Amount per second">
+                {RATE_OPTIONS.map((o) => (
+                  <option key={o} value={o}>
+                    {o}/s
+                  </option>
+                ))}
+              </select>
+              <button
+                className="route-add-btn"
+                onClick={() => f && t && f !== t && addRoute(f, t, res, rate / TICK_RATE)}
+              >
                 Add
               </button>
             </div>
