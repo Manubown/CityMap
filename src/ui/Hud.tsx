@@ -11,6 +11,7 @@ import { StatsView } from "./StatsView";
 import { InstructionCard } from "./InstructionCard";
 import { ClockPanel } from "./ClockPanel";
 import { SettingsModal, SpeedControls } from "./SettingsModal";
+import { Minimap } from "./Minimap";
 
 export function Hud() {
   const buildingCount = useGameStore((s) => s.buildingCount);
@@ -22,6 +23,9 @@ export function Hud() {
   const save = useGameStore((s) => s.save);
   const toggleMenu = useGameStore((s) => s.toggleMenu);
   const setView = useGameStore((s) => s.setView);
+  const rotateBuild = useGameStore((s) => s.rotateBuild);
+  const cancelBuild = useGameStore((s) => s.cancelBuild);
+  const toggleClear = useGameStore((s) => s.toggleClear);
 
   if (viewMode === "strategic") return <StrategicView />;
   if (viewMode === "skills") return <SkillTreeView />;
@@ -51,6 +55,7 @@ export function Hud() {
         </button>
       </div>
 
+      <Minimap />
       <SelectionPanel />
       <BuildBar />
 
@@ -58,12 +63,27 @@ export function Hud() {
       <SettingsModal />
 
       {buildMode && (
-        <div className="mode-flag panel">Building — R to rotate the door · Esc to cancel</div>
+        <>
+          <div className="mode-flag panel">Building — rotate the door · tap to place</div>
+          <div className="touch-actions">
+            <button onClick={rotateBuild} title="Rotate door (R)">
+              ↻
+            </button>
+            <button onClick={cancelBuild} title="Cancel (Esc)">
+              ✕
+            </button>
+          </div>
+        </>
       )}
       {clearMode && (
-        <div className="mode-flag panel">
-          🪓 Clear mode — forest 🪙5 / rock 🪙10 · Esc to cancel
-        </div>
+        <>
+          <div className="mode-flag panel">🪓 Clear — forest 🪙5 / rock 🪙10 · tap tiles</div>
+          <div className="touch-actions">
+            <button onClick={toggleClear} title="Done">
+              ✓
+            </button>
+          </div>
+        </>
       )}
       {message && <div className="toast">{message}</div>}
     </div>

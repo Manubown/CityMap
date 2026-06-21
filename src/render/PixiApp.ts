@@ -9,6 +9,9 @@ import { Application, Assets, Container, type Texture } from "pixi.js";
 import type { BuildingTypeId, GridPos, Region } from "../engine/types";
 import { TILE_W, TILE_H, gridToScreen } from "../engine/iso";
 import { dayTint } from "../engine/time";
+import { tileAt } from "../engine/map/generate";
+import { getBuildingDef } from "../engine/buildings/registry";
+import { TERRAIN_COLORS } from "./shapes";
 import { Camera, type WorldBounds } from "./camera";
 import { pointerToTile } from "./picking";
 import { buildTerrainLayer, TERRAIN_SPRITE_PATHS } from "./TerrainLayer";
@@ -56,6 +59,8 @@ export class GameRenderer {
   private downY = 0;
   private lastX = 0;
   private lastY = 0;
+  private pointers = new Map<number, { x: number; y: number }>();
+  private pinchDist = 0;
 
   onHoverTile?: (tile: GridPos | null) => void;
   onClickTile?: (tile: GridPos, button: number) => void;
@@ -147,6 +152,60 @@ export class GameRenderer {
     this.world.tint = dayTint(tick);
   }
 
+  /** Centre the camera on a fraction (0..1) of the region's grid (minimap jump). */
+  panToFraction(fx: number, fy: number): void {
+    if (!this.camera || !this.region) return;
+    const p = gridToScreen(fx * this.region.map.width, fy * this.region.map.height);
+    this.camera.centerOn(p.x, p.y, this.app.screen.width, this.app.screen.height);
+    this.camera.apply(this.world);
+  }
+
+  /** Draw a top-down grid overview (terrain + buildings + viewport) to a canvas. */
+  drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    ctx.clearRect(0, 0, w, h);
+    if (!this.region) return;
+    const map = this.region.map;
+    const sx = w / map.width;
+    const sy = h / map.height;
+    const cw = Math.ceil(sx);
+    const ch = Math.ceil(sy);
+    for (let row = 0; row < map.height; row++) {
+      for (let col = 0; col < map.width; col++) {
+        const t = tileAt(map, col, row);
+        if (!t) continue;
+        ctx.fillStyle = `#${TERRAIN_COLORS[t.terrain].toString(16).padStart(6, "0")}`;
+        ctx.fillRect(col * sx, row * sy, cw, ch);
+      }
+    }
+    ctx.fillStyle = "#f2e4bd";
+    for (const b of Object.values(this.region.buildings)) {
+      const { w: fw, h: fh } = getBuildingDef(b.type).footprint;
+      ctx.fillRect(b.col * sx, b.row * sy, Math.ceil(fw * sx), Math.ceil(fh * sy));
+    }
+    if (this.camera) {
+      const sw = this.app.screen.width;
+      const sh = this.app.screen.height;
+      const corners = [
+        pointerToTile(this.camera, 0, 0),
+        pointerToTile(this.camera, sw, 0),
+        pointerToTile(this.camera, sw, sh),
+        pointerToTile(this.camera, 0, sh),
+      ];
+      const cols = corners.map((c) => c.col);
+      const rows = corners.map((c) => c.row);
+      const minC = Math.min(...cols);
+      const minR = Math.min(...rows);
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(
+        minC * sx,
+        minR * sy,
+        (Math.max(...cols) - minC) * sx,
+        (Math.max(...rows) - minR) * sy,
+      );
+    }
+  }
+
   /** Rebuild terrain + decoration after a tile edit (clearing), keeping camera. */
   rebuildTerrain(): void {
     if (!this.region) return;
@@ -219,6 +278,7 @@ export class GameRenderer {
   }
 
   private onPointerDown = (e: PointerEvent): void => {
+    this.pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
     this.pointerDown = true;
     this.pointerButton = e.button;
     this.dragMoved = false;
@@ -229,6 +289,20 @@ export class GameRenderer {
 
   private onPointerMove = (e: PointerEvent): void => {
     if (!this.camera) return;
+    if (this.pointers.has(e.pointerId)) this.pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+
+    // Two-finger pinch to zoom.
+    if (this.pointers.size >= 2) {
+      const pts = [...this.pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (this.pinchDist > 0 && dist > 0) {
+        this.camera.zoomAt(dist / this.pinchDist, (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2);
+      }
+      this.pinchDist = dist;
+      this.dragMoved = true; // suppress tap-to-place during a pinch
+      return;
+    }
+
     const dx = e.offsetX - this.lastX;
     const dy = e.offsetY - this.lastY;
     this.lastX = e.offsetX;
@@ -247,14 +321,18 @@ export class GameRenderer {
   };
 
   private onPointerUp = (e: PointerEvent): void => {
-    if (this.pointerDown && !this.dragMoved && e.button === 0) {
+    if (this.pointerDown && !this.dragMoved && e.button === 0 && this.pointers.size < 2) {
       this.onClickTile?.(this.tileFromEvent(e), e.button);
     }
+    this.pointers.delete(e.pointerId);
+    if (this.pointers.size < 2) this.pinchDist = 0;
     this.pointerDown = false;
     this.app.canvas.releasePointerCapture?.(e.pointerId);
   };
 
   private onPointerLeave = (): void => {
+    this.pointers.clear();
+    this.pinchDist = 0;
     this.pointerDown = false;
     this.overlay.setHover(null);
     this.onHoverTile?.(null);

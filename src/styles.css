@@ -1319,6 +1319,123 @@ button:hover {
   margin-top: 14px;
 }
 
+/* --- minimap --- */
+.minimap {
+  position: absolute;
+  bottom: 16px;
+  right: 14px;
+  padding: 5px;
+  line-height: 0;
+}
+
+.minimap canvas {
+  display: block;
+  width: 150px;
+  height: 150px;
+  border-radius: 6px;
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+
+/* --- build search --- */
+.build-search {
+  margin-left: 6px;
+  width: 116px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+}
+
+/* --- on-screen build actions (touch-friendly) --- */
+.touch-actions {
+  position: absolute;
+  bottom: 188px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  z-index: 6;
+}
+
+.touch-actions button {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  border-radius: 50%;
+  background: rgba(18, 26, 36, 0.92);
+  border: 1px solid var(--panel-border);
+}
+
+/* --- responsive / mobile --- */
+@media (max-width: 860px) {
+  .resource-bar {
+    gap: 10px;
+    padding: 7px 10px;
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
+  }
+  .resource .glyph-img {
+    width: 20px;
+    height: 20px;
+  }
+  .controls {
+    gap: 5px;
+    padding: 6px 8px;
+    flex-wrap: wrap;
+    max-width: 58vw;
+    justify-content: flex-end;
+  }
+  .clock {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .clock-date {
+    display: none;
+  }
+  .left-stack {
+    width: 188px;
+  }
+  .selection-panel {
+    width: calc(100vw - 28px);
+    max-width: 320px;
+    max-height: 45vh;
+  }
+  .build-detail {
+    width: calc(100vw - 28px);
+    max-width: 320px;
+  }
+  .build-btn {
+    width: 72px;
+    padding: 7px 5px;
+  }
+  .minimap canvas {
+    width: 104px;
+    height: 104px;
+  }
+  .touch-actions {
+    bottom: 150px;
+  }
+  .build-search {
+    width: 92px;
+  }
+}
+
+/* Larger tap targets on touch devices */
+@media (pointer: coarse) {
+  button {
+    min-height: 40px;
+  }
+  .cat-tab,
+  .speed-ctrl button,
+  .build-search {
+    min-height: 40px;
+  }
+}
+
 .mode-flag {
   position: absolute;
   bottom: 96px;

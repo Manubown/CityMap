@@ -69,6 +69,8 @@ export class GameController {
   private selectedId: string | null = null;
   private buildFacing = 0;
   private speed = 1;
+  private minimapCanvas: HTMLCanvasElement | null = null;
+  private minimapAccum = 0;
   private pushAccum = 0;
   private autosaveAccum = 0;
   private messageTimer: ReturnType<typeof setTimeout> | null = null;
@@ -123,6 +125,13 @@ export class GameController {
     if (this.autosaveAccum >= AUTOSAVE_MS) {
       this.autosaveAccum = 0;
       void saveGame(this.state);
+    }
+
+    this.minimapAccum += dtMs;
+    if (this.minimapCanvas && this.minimapAccum >= 200) {
+      this.minimapAccum = 0;
+      const ctx = this.minimapCanvas.getContext("2d");
+      if (ctx) this.renderer.drawMinimap(ctx, this.minimapCanvas.width, this.minimapCanvas.height);
     }
   }
 
@@ -207,7 +216,12 @@ export class GameController {
         useGameStore.setState({ buildMode: type, clearMode: false });
       },
       cancelBuild: () => this.cancelBuild(),
+      rotateBuild: () => this.rotateBuild(),
       toggleClear: () => this.toggleClear(),
+      registerMinimap: (c) => {
+        this.minimapCanvas = c;
+      },
+      minimapJump: (fx, fy) => this.renderer.panToFraction(fx, fy),
       clearSelection: () => {
         this.selectedId = null;
         this.renderer.setSelection(null);

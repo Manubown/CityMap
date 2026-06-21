@@ -79,10 +79,14 @@ export function BuildBar() {
   const toggleClear = useGameStore((s) => s.toggleClear);
   const [cat, setCat] = useState<BuildingCategory>("food");
   const [hovered, setHovered] = useState<BuildingTypeId | null>(null);
+  const [search, setSearch] = useState("");
 
   const activeBiome = regions.find((r) => r.active)?.biome;
   const techName = (id: string) => techs.find((t) => t.id === id)?.name ?? id;
-  const buildings = BUILDABLE_ORDER.filter((id) => BUILDING_CATEGORY[id] === cat);
+  const q = search.trim().toLowerCase();
+  const buildings = q
+    ? BUILDABLE_ORDER.filter((id) => BUILDINGS[id].name.toLowerCase().includes(q))
+    : BUILDABLE_ORDER.filter((id) => BUILDING_CATEGORY[id] === cat);
   const detailId = hovered ?? buildMode;
 
   return (
@@ -107,6 +111,13 @@ export function BuildBar() {
         >
           🪓 Clear
         </button>
+        <input
+          className="build-search"
+          type="search"
+          placeholder="🔍 search…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <div className="build-bar panel">

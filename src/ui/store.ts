@@ -187,7 +187,10 @@ export interface GameStore {
   unlockSkill: (id: string) => void;
   setBuildMode: (type: BuildingTypeId) => void;
   cancelBuild: () => void;
+  rotateBuild: () => void;
   toggleClear: () => void;
+  registerMinimap: (canvas: HTMLCanvasElement | null) => void;
+  minimapJump: (fx: number, fy: number) => void;
   deleteSelected: () => void;
   clearSelection: () => void;
   trade: (res: ResourceId, dir: "buy" | "sell") => void;
@@ -256,7 +259,10 @@ export const useGameStore = create<GameStore>((set) => ({
   unlockSkill: noop,
   setBuildMode: noop,
   cancelBuild: noop,
+  rotateBuild: noop,
   toggleClear: noop,
+  registerMinimap: noop,
+  minimapJump: noop,
   deleteSelected: noop,
   clearSelection: noop,
   trade: noop,
