@@ -71,7 +71,20 @@ export interface RegionInfo {
   npc?: { reputation: number; prices: Record<ResourceId, { buy: number; sell: number }> };
 }
 
-export type ViewMode = "city" | "strategic";
+export type ViewMode = "city" | "strategic" | "skills";
+
+export interface SkillNodeInfo {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  pos: { x: number; y: number };
+  requires: string[];
+  effectLabel: string;
+  unlocked: boolean;
+  available: boolean;
+  affordable: boolean;
+}
 
 export interface RouteInfo {
   id: string;
@@ -118,11 +131,14 @@ export interface GameStore {
   completedTechs: string[];
   unlockedSkills: string[];
   techs: TechInfo[];
+  skillPoints: number;
+  skillNodes: SkillNodeInfo[];
   viewMode: ViewMode;
 
   // --- actions (replaced by the controller on start) ---
   setView: (v: ViewMode) => void;
   npcTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell") => void;
+  unlockSkill: (id: string) => void;
   setBuildMode: (type: BuildingTypeId) => void;
   cancelBuild: () => void;
   deleteSelected: () => void;
@@ -164,10 +180,13 @@ export const useGameStore = create<GameStore>((set) => ({
   completedTechs: [],
   unlockedSkills: [],
   techs: [],
+  skillPoints: 0,
+  skillNodes: [],
   viewMode: "city",
 
   setView: (v) => set({ viewMode: v }),
   npcTrade: noop,
+  unlockSkill: noop,
   setBuildMode: noop,
   cancelBuild: noop,
   deleteSelected: noop,

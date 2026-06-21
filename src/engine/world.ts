@@ -25,8 +25,11 @@ import { createRng } from "./rng";
 import { coordKey, hashCoord, neighbours } from "./world/coords";
 import { worldLayout, type RegionDescriptor } from "./world/worldgen";
 import { makeNpcState } from "./npc/archetypes";
+import { aggregateSkillEffects } from "./skills/skilltree";
 
-export const STATE_VERSION = 5;
+// v6: M3 reshaped the world (multi-node hex map + discovery), so pre-M3 saves
+// are dropped rather than migrated (pre-release convention).
+export const STATE_VERSION = 6;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {
@@ -248,8 +251,9 @@ function revealNeighbours(state: GameState, region: Region): void {
 export function claimRegion(state: GameState, regionId: string): boolean {
   const region = getRegion(state, regionId);
   if (!region || region.claimed || region.kind === "npc") return false;
-  if (state.coins < region.claimCost) return false;
-  state.coins -= region.claimCost;
+  const cost = Math.round(region.claimCost * aggregateSkillEffects(state).claimCostMult);
+  if (state.coins < cost) return false;
+  state.coins -= cost;
   region.claimed = true;
   region.kind = "player";
   region.stock = startingStock();

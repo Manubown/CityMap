@@ -12,6 +12,7 @@ import { getBuildingDef } from "../buildings/registry";
 import { aggregateEffects } from "../buildings/upgrades";
 import { canAfford, deposit, spend } from "../economy/resources";
 import { countAdjacentDeposit, countAdjacentTerrain } from "../world";
+import { emptySkillEffects, type SkillEffects } from "../skills/skilltree";
 
 function scaleMap(map: ResourceMap, factor: number): ResourceMap {
   const out: ResourceMap = {};
@@ -53,7 +54,7 @@ function adjacencyMet(region: Region, id: string): boolean {
   return true;
 }
 
-export function stepProduction(region: Region): void {
+export function stepProduction(region: Region, skill: SkillEffects = emptySkillEffects()): void {
   const labor = laborRatio(region);
 
   for (const id of Object.keys(region.buildings)) {
@@ -79,7 +80,7 @@ export function stepProduction(region: Region): void {
         break;
       }
       spend(region.stock, inputs);
-      deposit(region.stock, scaleMap(recipe.outputs, eff.outputMult));
+      deposit(region.stock, scaleMap(recipe.outputs, eff.outputMult * skill.productionMult));
       b.progress -= 1;
     }
   }

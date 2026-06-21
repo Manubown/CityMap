@@ -14,6 +14,7 @@ import type { Region, BuildingInstance, ResourceId, ResourceMap } from "../types
 import { getBuildingDef } from "../buildings/registry";
 import { aggregateEffects } from "../buildings/upgrades";
 import { consumeFood, totalFood } from "../economy/resources";
+import { emptySkillEffects, type SkillEffects } from "../skills/skilltree";
 
 export const POP_GROWTH = 0.03;
 export const POP_STARVE = 0.025;
@@ -69,7 +70,10 @@ function nextTierFeasible(region: Region, b: BuildingInstance): boolean {
 }
 
 /** Advance a region's population one tick; returns coins (taxes) earned. */
-export function stepPopulation(region: Region): number {
+export function stepPopulation(
+  region: Region,
+  skill: SkillEffects = emptySkillEffects(),
+): number {
   let total = 0;
   let coins = 0;
 
@@ -93,13 +97,15 @@ export function stepPopulation(region: Region): number {
       }
 
       if (comfortMet) {
-        if (b.residents < cap) b.residents = Math.min(cap, b.residents + POP_GROWTH);
-        coins += b.residents * tier.tax * eff.taxMult;
+        if (b.residents < cap) {
+          b.residents = Math.min(cap, b.residents + POP_GROWTH * skill.popGrowthMult);
+        }
+        coins += b.residents * tier.tax * eff.taxMult * skill.taxMult;
         if (b.tier < TIERS.length && b.residents >= cap * 0.9 && nextTierFeasible(region, b)) {
           b.tier++;
         }
       } else {
-        coins += b.residents * tier.tax * eff.taxMult * 0.5;
+        coins += b.residents * tier.tax * eff.taxMult * skill.taxMult * 0.5;
         if (b.tier > 1) b.residents = Math.max(0, b.residents - POP_GROWTH * 0.5);
       }
     } else {

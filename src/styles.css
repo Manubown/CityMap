@@ -581,6 +581,98 @@ button:hover {
   font-size: 18px;
 }
 
+/* --- skill tree --- */
+.skilltree {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, #1a2230, #0d121a);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.skill-sp {
+  margin-left: auto;
+  color: #ffd966;
+  font-weight: 700;
+}
+
+.skill-body {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding: 0 12px 12px;
+  min-height: 0;
+}
+
+.skill-canvas {
+  flex: 1;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 12px;
+  cursor: grab;
+}
+
+.skill-canvas:active {
+  cursor: grabbing;
+}
+
+.skill-edge {
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 3;
+}
+
+.skill-edge.on {
+  stroke: #5fd3a3;
+}
+
+.skill-node {
+  cursor: pointer;
+}
+
+.skill-node circle {
+  stroke-width: 3;
+}
+
+.skill-node.locked circle {
+  fill: #2a3340;
+  stroke: #3a4453;
+}
+
+.skill-node.available circle {
+  fill: #3e4a36;
+  stroke: #e9c46a;
+}
+
+.skill-node.unlocked circle {
+  fill: #2e5b46;
+  stroke: #5fd3a3;
+}
+
+.skill-node.selected circle {
+  stroke-width: 5;
+}
+
+.skill-icon {
+  font-size: 18px;
+  fill: #e7eef6;
+  font-weight: 700;
+}
+
+.skill-label {
+  font-size: 13px;
+  fill: #e7eef6;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #0d121a;
+  stroke-width: 3px;
+}
+
+.skill-panel {
+  width: 280px;
+  padding: 16px;
+}
+
 /* --- region tabs --- */
 .region-tabs {
   position: absolute;

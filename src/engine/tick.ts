@@ -11,8 +11,10 @@ import type { GameState } from "./types";
 import { stepProduction } from "./systems/production";
 import { stepPopulation } from "./systems/population";
 import { stepResearch } from "./systems/research";
+import { stepSkillPoints } from "./systems/skillProgress";
 import { stepNpcEconomy } from "./systems/npcEconomy";
 import { stepRoutes } from "./systems/routes";
+import { aggregateSkillEffects } from "./skills/skilltree";
 
 export const TICK_RATE = 4; // simulation ticks per second
 
@@ -20,19 +22,20 @@ export const TICK_RATE = 4; // simulation ticks per second
  * Advance the whole simulation by one tick across every claimed region.
  *
  * Fixed step order (later milestones insert in this order, never reorder):
- *   production -> population -> [research (M2)] -> [skill points (M5)] ->
- *   [agents (M6), per region] -> routes.
+ *   production -> population -> research -> skill points -> [agents (M6)] ->
+ *   npc economy -> routes. Skill effects are aggregated once and shared.
  */
 export function stepGame(state: GameState): void {
   state.tick++;
+  const skill = aggregateSkillEffects(state);
   for (const region of state.regions) {
     if (!region.claimed) continue;
-    stepProduction(region);
-    state.coins += stepPopulation(region); // taxes flow to the global treasury
+    stepProduction(region, skill);
+    state.coins += stepPopulation(region, skill); // taxes flow to the global treasury
     // [M6] stepAgents(region) inserts here.
   }
-  stepResearch(state);
-  // [M5] stepSkillPoints(state) inserts here.
+  stepResearch(state, skill);
+  stepSkillPoints(state);
   stepNpcEconomy(state);
   stepRoutes(state);
 }

@@ -6,6 +6,7 @@ import { RegionTabs } from "./RegionTabs";
 import { RoutesPanel } from "./RoutesPanel";
 import { ResearchPanel } from "./ResearchPanel";
 import { StrategicView } from "./StrategicView";
+import { SkillTreeView } from "./SkillTreeView";
 
 export function Hud() {
   const running = useGameStore((s) => s.running);
@@ -21,6 +22,7 @@ export function Hud() {
   const setView = useGameStore((s) => s.setView);
 
   if (viewMode === "strategic") return <StrategicView />;
+  if (viewMode === "skills") return <SkillTreeView />;
 
   return (
     <div className="hud">
@@ -35,6 +37,7 @@ export function Hud() {
         <span className="stat">🏚 {buildingCount}</span>
         <span className="stat">⏱ {tick}</span>
         <button onClick={() => setView("strategic")}>🗺 World</button>
+        <button onClick={() => setView("skills")}>🌟 Skills</button>
         <button onClick={togglePause}>{running ? "⏸ Pause" : "▶ Resume"}</button>
         <button onClick={save}>💾 Save</button>
         <button onClick={newGame}>🌱 New</button>

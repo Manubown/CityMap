@@ -26,6 +26,24 @@ import { availableUpgrades, canUnlock, unlockUpgrade } from "../engine/buildings
 import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade";
 import { npcBuy, npcSell, NPC_TRADE_BATCH } from "../engine/npc/trade";
 import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
+import {
+  SKILL_TREE,
+  aggregateSkillEffects,
+  canUnlockSkill,
+  unlockSkill as applySkill,
+  type SkillEffectDef,
+} from "../engine/skills/skilltree";
+
+function skillEffectLabel(e: SkillEffectDef): string {
+  const pct = (m: number) => `${m >= 1 ? "+" : ""}${Math.round((m - 1) * 100)}%`;
+  const parts: string[] = [];
+  if (e.productionMult) parts.push(`${pct(e.productionMult)} production`);
+  if (e.popGrowthMult) parts.push(`${pct(e.popGrowthMult)} growth`);
+  if (e.taxMult) parts.push(`${pct(e.taxMult)} taxes`);
+  if (e.researchMult) parts.push(`${pct(e.researchMult)} research`);
+  if (e.claimCostMult) parts.push(`${pct(e.claimCostMult)} claim cost`);
+  return parts.join(" · ");
+}
 import type { BuildingTypeId, GameState, GridPos, Region, ResourceId } from "../engine/types";
 import { useGameStore, type SelectedInfo } from "../ui/store";
 
@@ -150,6 +168,7 @@ export class GameController {
       npcTrade: (npcId, res, dir) => this.npcTrade(npcId, res, dir),
       upgrade: (nodeId) => this.upgrade(nodeId),
       research: (techId) => this.research(techId),
+      unlockSkill: (id) => this.unlockSkill(id),
       switchRegion: (id) => this.switchRegion(id),
       claimRegion: (id) => this.claim(id),
       addRoute: (from, to, res) => this.addRoute(from, to, res),
@@ -194,6 +213,15 @@ export class GameController {
       this.pushSnapshot();
     } else {
       this.flashMessage("Not enough research points");
+    }
+  }
+
+  private unlockSkill(id: string): void {
+    if (applySkill(this.state, id)) {
+      this.flashMessage("Skill unlocked!");
+      this.pushSnapshot();
+    } else {
+      this.flashMessage("Not enough skill points");
     }
   }
 
@@ -319,11 +347,12 @@ export class GameController {
 
   private pushSnapshot(): void {
     const region = this.region;
+    const skillEff = aggregateSkillEffects(this.state);
     const regions = this.state.regions.map((r) => ({
       id: r.id,
       name: r.name,
       claimed: r.claimed,
-      claimCost: r.claimCost,
+      claimCost: Math.round(r.claimCost * skillEff.claimCostMult),
       population: Math.floor(r.population),
       active: r.id === this.state.activeRegionId,
       biome: r.biome,
@@ -354,6 +383,21 @@ export class GameController {
       affordable: canResearch(this.state, t.id),
     }));
 
+    const skillNodes = SKILL_TREE.map((n) => ({
+      id: n.id,
+      name: n.name,
+      description: n.description,
+      cost: n.cost,
+      pos: n.pos,
+      requires: n.requires,
+      effectLabel: skillEffectLabel(n.effects),
+      unlocked: this.state.unlockedSkills.includes(n.id),
+      available:
+        !this.state.unlockedSkills.includes(n.id) &&
+        n.requires.every((r) => this.state.unlockedSkills.includes(r)),
+      affordable: canUnlockSkill(this.state, n.id),
+    }));
+
     useGameStore.setState({
       stock: { ...region.stock },
       coins: Math.floor(this.state.coins),
@@ -374,6 +418,8 @@ export class GameController {
       completedTechs: [...this.state.research.completed],
       unlockedSkills: [...this.state.unlockedSkills],
       techs,
+      skillPoints: this.state.skillPoints,
+      skillNodes,
     });
   }
 
