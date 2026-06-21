@@ -7,6 +7,7 @@ import { RoutesPanel } from "./RoutesPanel";
 import { ResearchPanel } from "./ResearchPanel";
 import { StrategicView } from "./StrategicView";
 import { SkillTreeView } from "./SkillTreeView";
+import { StatsView } from "./StatsView";
 import { InstructionCard } from "./InstructionCard";
 import { ClockPanel } from "./ClockPanel";
 
@@ -26,6 +27,7 @@ export function Hud() {
 
   if (viewMode === "strategic") return <StrategicView />;
   if (viewMode === "skills") return <SkillTreeView />;
+  if (viewMode === "stats") return <StatsView />;
 
   return (
     <div className="hud">
@@ -41,6 +43,7 @@ export function Hud() {
         <span className="stat">🏚 {buildingCount}</span>
         <span className="stat">⏱ {tick}</span>
         <button onClick={() => setView("strategic")}>🗺 World</button>
+        <button onClick={() => setView("stats")}>📊 Stats</button>
         <button onClick={() => setView("skills")}>🌟 Skills</button>
         <button onClick={togglePause}>{running ? "⏸ Pause" : "▶ Resume"}</button>
         <button onClick={save}>💾 Save</button>

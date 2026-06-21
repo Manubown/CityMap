@@ -74,7 +74,17 @@ export interface RegionInfo {
   npc?: { reputation: number; prices: Record<ResourceId, { buy: number; sell: number }> };
 }
 
-export type ViewMode = "city" | "strategic" | "skills";
+export type ViewMode = "city" | "strategic" | "skills" | "stats";
+
+export interface FlowInfo {
+  id: ResourceId;
+  name: string;
+  glyph: string;
+  stock: number;
+  producedPerSec: number;
+  consumedPerSec: number;
+  netPerSec: number;
+}
 
 export interface SkillNodeInfo {
   id: string;
@@ -140,6 +150,7 @@ export interface GameStore {
   routes: RouteInfo[];
   contracts: ContractInfo[];
   canTrade: boolean;
+  flows: FlowInfo[];
   // time of day / calendar
   timeHour: number;
   timeMinute: number;
@@ -211,6 +222,7 @@ export const useGameStore = create<GameStore>((set) => ({
   routes: [],
   contracts: [],
   canTrade: false,
+  flows: [],
   timeHour: 6,
   timeMinute: 0,
   dayNum: 1,

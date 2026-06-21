@@ -43,7 +43,8 @@ export class StatusLayer {
     const bob = Math.sin(phaseMs / 300) * 3;
 
     for (const b of Object.values(region.buildings)) {
-      const { w: fw, h: fh } = getBuildingDef(b.type).footprint;
+      const def = getBuildingDef(b.type);
+      const { w: fw, h: fh } = def.footprint;
       const c = gridToScreen(b.col + (fw - 1) / 2, b.row + (fh - 1) / 2);
       const topY = c.y - 40 - (fw + fh) * 6;
 
@@ -55,6 +56,11 @@ export class StatusLayer {
         bar(g, c.x, topY, b.pendingUpgrade.progress, 0x6fa8dc);
       } else if (b.productivity > 0) {
         g.circle(c.x, c.y, 9 + pulse * 5).fill({ color: 0x5fd3a3, alpha: 0.12 + pulse * 0.14 });
+      } else if (def.recipe) {
+        // stalled production building — needs inputs or workers
+        g.circle(c.x, topY + 5, 5)
+          .fill({ color: 0xe9a23a, alpha: 0.35 + pulse * 0.4 })
+          .stroke({ color: 0x12181f, width: 1 });
       }
       if (!b.pendingUpgrade && availableUpgrades(b).length > 0) {
         upArrow(g, c.x, topY + bob, 0xffd966);

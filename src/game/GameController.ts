@@ -7,7 +7,9 @@
  */
 
 import { GameRenderer } from "../render/PixiApp";
-import { SimClock, stepGame } from "../engine/tick";
+import { SimClock, stepGame, TICK_RATE } from "../engine/tick";
+import { resourceFlows } from "../engine/stats";
+import { RESOURCES } from "../engine/economy/resources";
 import {
   activeRegion,
   buildingAt,
@@ -390,6 +392,23 @@ export class GameController {
 
   // --- store snapshot -----------------------------------------------------
 
+  private buildFlows(region: Region) {
+    const rf = resourceFlows(this.state, region);
+    return (Object.keys(RESOURCES) as ResourceId[]).map((id) => {
+      const produced = rf[id].produced * TICK_RATE;
+      const consumed = rf[id].consumed * TICK_RATE;
+      return {
+        id,
+        name: RESOURCES[id].name,
+        glyph: RESOURCES[id].glyph,
+        stock: Math.floor(region.stock[id]),
+        producedPerSec: produced,
+        consumedPerSec: consumed,
+        netPerSec: produced - consumed,
+      };
+    });
+  }
+
   private buildSelectedInfo(): SelectedInfo | null {
     if (!this.selectedId) return null;
     const b = this.region.buildings[this.selectedId];
@@ -504,6 +523,7 @@ export class GameController {
       running: this.clock.isRunning(),
       selected: this.buildSelectedInfo(),
       canTrade: this.hasMarket(region),
+      flows: this.buildFlows(region),
       regions,
       routes,
       contracts: this.state.contracts.map((c) => ({
