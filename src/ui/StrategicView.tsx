@@ -29,7 +29,7 @@ const TRADEABLE: ResourceId[] = [
   "bronze",
 ];
 
-const QTYS = [1, 10, 50];
+const QTYS = [1, 10, 50, 100];
 const DEAL_INTERVAL = 20; // ticks (~5s at TICK_RATE 4)
 
 export function StrategicView() {
@@ -43,6 +43,7 @@ export function StrategicView() {
   const npcTrade = useGameStore((s) => s.npcTrade);
   const setupDeal = useGameStore((s) => s.setupDeal);
   const cancelDeal = useGameStore((s) => s.cancelDeal);
+  const canTrade = useGameStore((s) => s.canTrade);
   const [selId, setSelId] = useState<string | null>(null);
 
   const nodes = regions.filter((r) => r.discovered);
@@ -114,6 +115,7 @@ export function StrategicView() {
               onTrade={npcTrade}
               onDeal={setupDeal}
               onCancelDeal={cancelDeal}
+              canTrade={canTrade}
             />
           )}
         </div>
@@ -131,6 +133,7 @@ function NodeDetail({
   onTrade,
   onDeal,
   onCancelDeal,
+  canTrade,
 }: {
   node: RegionInfo;
   coins: number;
@@ -140,6 +143,7 @@ function NodeDetail({
   onTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number) => void;
   onDeal: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number, every: number) => void;
   onCancelDeal: (id: string) => void;
+  canTrade: boolean;
 }) {
   const [qty, setQty] = useState(10);
   const [dealRes, setDealRes] = useState<ResourceId>("wood");
@@ -180,6 +184,10 @@ function NodeDetail({
             <b>{node.npc.reputation}</b>
           </div>
 
+          {!canTrade && (
+            <div className="trade-warn">⚠ Build a Trading Post in your city to trade here.</div>
+          )}
+
           <div className="qty-row">
             <span>Amount</span>
             {QTYS.map((q) => (
@@ -191,6 +199,13 @@ function NodeDetail({
                 ×{q}
               </button>
             ))}
+            <input
+              className="qty-input"
+              type="number"
+              min={1}
+              value={qty}
+              onChange={(e) => setQty(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+            />
           </div>
 
           <div className="npc-trade">
@@ -201,12 +216,16 @@ function NodeDetail({
                   <span className="t-glyph" title={RESOURCES[id].name}>
                     {RESOURCES[id].glyph}
                   </span>
-                  <button className="t-sell" onClick={() => onTrade(node.id, id, "sell", qty)}>
+                  <button
+                    className="t-sell"
+                    disabled={!canTrade}
+                    onClick={() => onTrade(node.id, id, "sell", qty)}
+                  >
                     Sell +{price.sell * qty}
                   </button>
                   <button
                     className="t-buy"
-                    disabled={coins < price.buy * qty}
+                    disabled={!canTrade || coins < price.buy * qty}
                     onClick={() => onTrade(node.id, id, "buy", qty)}
                   >
                     Buy −{price.buy * qty}
@@ -236,10 +255,16 @@ function NodeDetail({
                   </option>
                 ))}
               </select>
-              <button onClick={() => onDeal(node.id, dealRes, "sell", qty, DEAL_INTERVAL)}>
+              <button
+                disabled={!canTrade}
+                onClick={() => onDeal(node.id, dealRes, "sell", qty, DEAL_INTERVAL)}
+              >
                 Auto-sell
               </button>
-              <button onClick={() => onDeal(node.id, dealRes, "buy", qty, DEAL_INTERVAL)}>
+              <button
+                disabled={!canTrade}
+                onClick={() => onDeal(node.id, dealRes, "buy", qty, DEAL_INTERVAL)}
+              >
                 Auto-buy
               </button>
             </div>

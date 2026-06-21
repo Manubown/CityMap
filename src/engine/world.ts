@@ -204,25 +204,31 @@ export function buildingAt(region: Region, col: number, row: number): BuildingIn
   return region.buildings[tile.buildingId] ?? null;
 }
 
+/** Coin cost to clear each clearable terrain (labour). */
+export const CLEAR_COSTS: Partial<Record<TerrainType, number>> = { forest: 5, rock: 10 };
+
+/** Coins to clear (col,row), or -1 if it isn't a clearable tile. */
+export function clearCost(region: Region, col: number, row: number): number {
+  const tile = tileAt(region.map, col, row);
+  if (!tile || tile.buildingId) return -1;
+  return CLEAR_COSTS[tile.terrain] ?? -1;
+}
+
 /**
  * Clear a forest or rock tile to flat dirt so it becomes buildable — vital in
- * forest / mountain regions where open ground is scarce. Yields a little of the
- * cleared material. Water, deposits and occupied tiles can't be cleared.
+ * forest / mountain regions where open ground is scarce. Costs coins (labour)
+ * and yields a little of the cleared material. Water, deposits and occupied
+ * tiles can't be cleared.
  */
-export function clearTile(region: Region, col: number, row: number): boolean {
-  const tile = tileAt(region.map, col, row);
-  if (!tile || tile.buildingId) return false;
-  if (tile.terrain === "forest") {
-    tile.terrain = "dirt";
-    region.stock.wood += 5;
-    return true;
-  }
-  if (tile.terrain === "rock") {
-    tile.terrain = "dirt";
-    region.stock.stone += 5;
-    return true;
-  }
-  return false;
+export function clearTile(state: GameState, region: Region, col: number, row: number): boolean {
+  const cost = clearCost(region, col, row);
+  if (cost < 0 || state.coins < cost) return false;
+  const tile = tileAt(region.map, col, row)!;
+  state.coins -= cost;
+  if (tile.terrain === "forest") region.stock.wood += 5;
+  else if (tile.terrain === "rock") region.stock.stone += 5;
+  tile.terrain = "dirt";
+  return true;
 }
 
 /** Drop a free Town Center at the region centre with its first settlers. */
@@ -281,6 +287,34 @@ export function claimRegion(state: GameState, regionId: string): boolean {
   foundTownCenter(region);
   revealNeighbours(state, region);
   return true;
+}
+
+/** Place one starter building on the nearest valid tile to the centre. */
+function placeStarter(region: Region, type: BuildingTypeId): void {
+  const cc = Math.floor(region.map.width / 2) - 1;
+  const cr = Math.floor(region.map.height / 2) - 1;
+  const cells: GridPos[] = [];
+  for (let row = 0; row < region.map.height; row++) {
+    for (let col = 0; col < region.map.width; col++) cells.push({ col, row });
+  }
+  cells.sort(
+    (a, b) =>
+      Math.abs(a.col - cc) + Math.abs(a.row - cr) - (Math.abs(b.col - cc) + Math.abs(b.row - cr)),
+  );
+  for (const c of cells) {
+    if (canPlace(region, type, c.col, c.row, { free: true }).ok) {
+      placeBuilding(region, type, c.col, c.row, { free: true });
+      return;
+    }
+  }
+}
+
+/** Give the starting Homeland a small working economy out of the gate. */
+export function placeStarters(region: Region): void {
+  placeStarter(region, "forester");
+  placeStarter(region, "forester");
+  placeStarter(region, "quarry");
+  placeStarter(region, "gatherer");
 }
 
 function freshResearch(): ResearchState {

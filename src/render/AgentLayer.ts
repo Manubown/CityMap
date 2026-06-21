@@ -11,8 +11,8 @@ import { gridToScreen } from "../engine/iso";
 import { MOVE_STEP } from "../engine/systems/agents";
 import { roleColor } from "../engine/agents/roles";
 
-const RADIUS = 4.5;
-const LIFT = 8; // px above the tile centre so dots sit on the ground
+const RADIUS = 5.5;
+const LIFT = 9; // px above the tile centre so dots sit on the ground
 
 export class AgentLayer {
   readonly container = new Container();
@@ -25,7 +25,14 @@ export class AgentLayer {
 
   private redraw(g: Graphics, color: number): void {
     g.clear();
-    g.circle(0, -LIFT, RADIUS).fill({ color }).stroke({ color: 0x10161d, width: 1.5 });
+    // ground shadow so villagers read against any terrain
+    g.ellipse(0, 0, RADIUS + 1, 2.6).fill({ color: 0x000000, alpha: 0.3 });
+    // body
+    g.circle(0, -LIFT + 2, RADIUS).fill({ color }).stroke({ color: 0x10161d, width: 1.6 });
+    // head dot
+    g.circle(0, -LIFT - RADIUS + 1, RADIUS * 0.55)
+      .fill({ color: 0xf3e9d8 })
+      .stroke({ color: 0x10161d, width: 1.2 });
   }
 
   update(region: Region | null, fraction: number): void {

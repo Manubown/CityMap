@@ -276,12 +276,28 @@ button:hover {
 /* --- selection panel --- */
 .selection-panel {
   position: absolute;
-  top: 70px;
-  right: 14px;
-  width: 256px;
+  bottom: 16px;
+  left: 14px;
+  width: 280px;
   padding: 14px 16px;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 230px);
   overflow-y: auto;
+}
+
+.selection-panel.collapsed {
+  width: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.sp-reopen {
+  padding: 9px 13px;
+  font-weight: 600;
+}
+
+.sp-head-btns {
+  display: flex;
+  gap: 4px;
 }
 
 .sp-head {
@@ -656,6 +672,26 @@ button:hover {
 .qty-btn.active {
   background: rgba(95, 211, 163, 0.16);
   border-color: var(--accent);
+}
+
+.qty-input {
+  width: 58px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.trade-warn {
+  margin: 10px 0 2px;
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: rgba(233, 196, 106, 0.14);
+  color: #f0d68a;
 }
 
 .npc-deals {

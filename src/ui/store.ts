@@ -128,6 +128,7 @@ export interface GameStore {
   running: boolean;
   buildMode: BuildingTypeId | null;
   clearMode: boolean;
+  infoHidden: boolean;
   hover: GridPos | null;
   selected: SelectedInfo | null;
   message: string | null;
@@ -135,6 +136,7 @@ export interface GameStore {
   activeRegionId: string;
   routes: RouteInfo[];
   contracts: ContractInfo[];
+  canTrade: boolean;
   // research / progression
   age: number;
   ageName: string;
@@ -148,6 +150,7 @@ export interface GameStore {
 
   // --- actions (replaced by the controller on start) ---
   setView: (v: ViewMode) => void;
+  toggleInfo: () => void;
   npcTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number) => void;
   setupDeal: (
     npcId: string,
@@ -189,6 +192,7 @@ export const useGameStore = create<GameStore>((set) => ({
   running: true,
   buildMode: null,
   clearMode: false,
+  infoHidden: false,
   hover: null,
   selected: null,
   message: null,
@@ -196,6 +200,7 @@ export const useGameStore = create<GameStore>((set) => ({
   activeRegionId: "",
   routes: [],
   contracts: [],
+  canTrade: false,
   age: 1,
   ageName: "Stone Age",
   researchPoints: 0,
@@ -207,6 +212,7 @@ export const useGameStore = create<GameStore>((set) => ({
   viewMode: "city",
 
   setView: (v) => set({ viewMode: v }),
+  toggleInfo: () => set((s) => ({ infoHidden: !s.infoHidden })),
   npcTrade: noop,
   setupDeal: noop,
   cancelDeal: noop,

@@ -8,10 +8,23 @@ export function SelectionPanel() {
   const selected = useGameStore((s) => s.selected);
   const laborSupply = useGameStore((s) => s.laborSupply);
   const laborDemand = useGameStore((s) => s.laborDemand);
+  const infoHidden = useGameStore((s) => s.infoHidden);
+  const toggleInfo = useGameStore((s) => s.toggleInfo);
   const deleteSelected = useGameStore((s) => s.deleteSelected);
   const clearSelection = useGameStore((s) => s.clearSelection);
 
   if (!selected) return null;
+
+  if (infoHidden) {
+    return (
+      <div className="selection-panel collapsed panel">
+        <button className="sp-reopen" onClick={toggleInfo} title="Show building info">
+          ℹ️ {selected.name} ▸
+        </button>
+      </div>
+    );
+  }
+
   const { recipe } = selected;
   const pct = Math.round(selected.productivity * 100);
   const understaffed = laborDemand > laborSupply;
@@ -20,9 +33,14 @@ export function SelectionPanel() {
     <div className="selection-panel panel">
       <div className="sp-head">
         <h3>{selected.name}</h3>
-        <button className="sp-close" onClick={clearSelection} aria-label="Close">
-          ✕
-        </button>
+        <div className="sp-head-btns">
+          <button className="sp-close" onClick={toggleInfo} title="Hide">
+            ▾
+          </button>
+          <button className="sp-close" onClick={clearSelection} aria-label="Close">
+            ✕
+          </button>
+        </div>
       </div>
       <p className="sp-desc">{selected.description}</p>
 

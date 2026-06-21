@@ -14,6 +14,7 @@ export function Hud() {
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
   const clearMode = useGameStore((s) => s.clearMode);
+  const selected = useGameStore((s) => s.selected);
   const message = useGameStore((s) => s.message);
   const viewMode = useGameStore((s) => s.viewMode);
 
@@ -47,14 +48,18 @@ export function Hud() {
       <SelectionPanel />
       <BuildBar />
 
-      <div className="hint panel">
-        Drag / WASD to pan · wheel to zoom · pick a building below, click to place ·
-        right-click to cancel
-      </div>
+      {!selected && (
+        <div className="hint panel">
+          Drag / WASD to pan · wheel to zoom · pick a building below, click to place ·
+          right-click to cancel
+        </div>
+      )}
 
       {buildMode && <div className="mode-flag panel">Building mode — Esc to cancel</div>}
       {clearMode && (
-        <div className="mode-flag panel">🪓 Clear mode — click forest/rock · Esc to cancel</div>
+        <div className="mode-flag panel">
+          🪓 Clear mode — forest 🪙5 / rock 🪙10 · Esc to cancel
+        </div>
       )}
       {message && <div className="toast">{message}</div>}
     </div>

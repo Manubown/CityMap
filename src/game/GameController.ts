@@ -12,10 +12,12 @@ import {
   activeRegion,
   buildingAt,
   claimRegion,
+  clearCost,
   clearTile,
   createGame,
   getRegion,
   placeBuilding,
+  placeStarters,
   removeBuilding,
 } from "../engine/world";
 import { getBuildingDef } from "../engine/buildings/registry";
@@ -74,7 +76,12 @@ export class GameController {
     await this.renderer.init(parent);
 
     const loaded = await loadGame();
-    this.state = loaded ?? createGame(randomSeed());
+    if (loaded) {
+      this.state = loaded;
+    } else {
+      this.state = createGame(randomSeed());
+      placeStarters(this.state.regions[0]); // new players start with a few buildings
+    }
     this.renderer.attachRegion(this.region);
 
     this.renderer.onClickTile = (tile, button) => this.onClickTile(tile, button);
@@ -122,12 +129,18 @@ export class GameController {
   }
 
   private tryClear(tile: GridPos): void {
-    if (clearTile(this.region, tile.col, tile.row)) {
-      this.renderer.rebuildTerrain();
-      this.pushSnapshot();
-    } else {
+    const cost = clearCost(this.region, tile.col, tile.row);
+    if (cost < 0) {
       this.flashMessage("Nothing to clear here");
+      return;
     }
+    if (this.state.coins < cost) {
+      this.flashMessage(`Clearing costs 🪙${cost}`);
+      return;
+    }
+    clearTile(this.state, this.region, tile.col, tile.row);
+    this.renderer.rebuildTerrain();
+    this.pushSnapshot();
   }
 
   private toggleClear(): void {
@@ -222,9 +235,18 @@ export class GameController {
     this.pushSnapshot();
   }
 
+  /** A region can trade only if it has a built trading building (Market). */
+  private hasMarket(region: Region): boolean {
+    return Object.values(region.buildings).some((b) => getBuildingDef(b.type).trade);
+  }
+
   private npcTrade(npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number): void {
     const npc = getRegion(this.state, npcId);
     if (!npc || npc.kind !== "npc") return;
+    if (!this.hasMarket(this.region)) {
+      this.flashMessage("Build a Trading Post in this city to trade");
+      return;
+    }
     const ok =
       dir === "buy"
         ? npcBuy(this.state, npc, this.region, res, qty)
@@ -242,6 +264,10 @@ export class GameController {
   ): void {
     const npc = getRegion(this.state, npcId);
     if (!npc || npc.kind !== "npc") return;
+    if (!this.hasMarket(this.region)) {
+      this.flashMessage("Build a Trading Post in this city to trade");
+      return;
+    }
     addContract(this.state, npcId, this.region.id, res, dir, qty, everyTicks);
     this.flashMessage(`Deal set: ${dir} ${qty} ${res}`);
     this.pushSnapshot();
@@ -335,6 +361,7 @@ export class GameController {
   private async newGame(): Promise<void> {
     await clearSave();
     this.state = createGame(randomSeed());
+    placeStarters(this.state.regions[0]);
     this.selectedId = null;
     this.cancelBuild();
     this.renderer.attachRegion(this.region);
@@ -455,6 +482,7 @@ export class GameController {
       buildingCount: Object.keys(region.buildings).length,
       running: this.clock.isRunning(),
       selected: this.buildSelectedInfo(),
+      canTrade: this.hasMarket(region),
       regions,
       routes,
       contracts: this.state.contracts.map((c) => ({

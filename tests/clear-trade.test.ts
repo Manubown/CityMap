@@ -16,22 +16,28 @@ function findTile(map: GameMap, terrain: TerrainType): GridPos | null {
 }
 
 describe("clear land", () => {
-  it("clears a forest tile to dirt and yields wood", () => {
+  it("clears a forest tile to dirt for coins and yields wood", () => {
     const s = createGame(3);
     const r = s.regions[0];
+    s.coins = 50;
     const spot = findTile(r.map, "forest")!;
     expect(spot).not.toBeNull();
     const before = r.stock.wood;
-    expect(clearTile(r, spot.col, spot.row)).toBe(true);
+    expect(clearTile(s, r, spot.col, spot.row)).toBe(true);
     expect(tileAt(r.map, spot.col, spot.row)!.terrain).toBe("dirt");
     expect(r.stock.wood).toBe(before + 5);
+    expect(s.coins).toBe(45); // forest clear costs 5
   });
 
-  it("won't clear plain grass", () => {
+  it("won't clear without enough coins, or on plain grass", () => {
     const s = createGame(3);
     const r = s.regions[0];
     const g = findTile(r.map, "grass")!;
-    expect(clearTile(r, g.col, g.row)).toBe(false);
+    s.coins = 100;
+    expect(clearTile(s, r, g.col, g.row)).toBe(false); // grass not clearable
+    const forest = findTile(r.map, "forest")!;
+    s.coins = 0;
+    expect(clearTile(s, r, forest.col, forest.row)).toBe(false); // can't afford
   });
 });
 
