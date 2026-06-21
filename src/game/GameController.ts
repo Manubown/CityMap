@@ -24,6 +24,7 @@ import { laborDemand } from "../engine/systems/production";
 import { addRoute as engineAddRoute, removeRoute as engineRemoveRoute } from "../engine/systems/routes";
 import { availableUpgrades, canUnlock, unlockUpgrade } from "../engine/buildings/upgrades";
 import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade";
+import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
 import type { BuildingTypeId, GameState, GridPos, Region, ResourceId } from "../engine/types";
 import { useGameStore, type SelectedInfo } from "../ui/store";
 
@@ -102,6 +103,16 @@ export class GameController {
   }
 
   private tryPlace(type: BuildingTypeId, tile: GridPos): void {
+    const def = getBuildingDef(type);
+    // Global gates (tech/skill). Biome/terrain/deposit are handled by canPlace.
+    if (def.requiresTech && !this.state.research.completed.includes(def.requiresTech)) {
+      this.flashMessage("Research it first");
+      return;
+    }
+    if (def.requiresSkill && !this.state.unlockedSkills.includes(def.requiresSkill)) {
+      this.flashMessage("Unlock the skill first");
+      return;
+    }
     if (placeBuilding(this.region, type, tile.col, tile.row)) {
       this.renderer.syncEntities();
       this.pushSnapshot();
@@ -136,6 +147,7 @@ export class GameController {
       deleteSelected: () => this.deleteSelected(),
       trade: (res, dir) => this.trade(res, dir),
       upgrade: (nodeId) => this.upgrade(nodeId),
+      research: (techId) => this.research(techId),
       switchRegion: (id) => this.switchRegion(id),
       claimRegion: (id) => this.claim(id),
       addRoute: (from, to, res) => this.addRoute(from, to, res),
@@ -161,6 +173,15 @@ export class GameController {
         : sellResource(this.state, this.region, res, TRADE_BATCH);
     if (!ok) this.flashMessage(dir === "buy" ? "Not enough coins" : "Not enough to sell");
     this.pushSnapshot();
+  }
+
+  private research(techId: string): void {
+    if (completeTech(this.state, techId)) {
+      this.flashMessage("Researched!");
+      this.pushSnapshot();
+    } else {
+      this.flashMessage("Not enough research points");
+    }
   }
 
   private upgrade(nodeId: string): void {
@@ -304,6 +325,18 @@ export class GameController {
       rate: rt.rate,
     }));
 
+    const techs = TECHS.map((t) => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      cost: t.cost,
+      completed: this.state.research.completed.includes(t.id),
+      available:
+        !this.state.research.completed.includes(t.id) &&
+        t.requires.every((r) => this.state.research.completed.includes(r)),
+      affordable: canResearch(this.state, t.id),
+    }));
+
     useGameStore.setState({
       stock: { ...region.stock },
       coins: Math.floor(this.state.coins),
@@ -318,6 +351,12 @@ export class GameController {
       regions,
       routes,
       activeRegionId: this.state.activeRegionId,
+      age: this.state.research.age,
+      ageName: AGE_NAMES[this.state.research.age] ?? `Age ${this.state.research.age}`,
+      researchPoints: Math.floor(this.state.research.points),
+      completedTechs: [...this.state.research.completed],
+      unlockedSkills: [...this.state.unlockedSkills],
+      techs,
     });
   }
 

@@ -4,7 +4,14 @@
  * GameState.buildings (see types.ts).
  */
 
-import type { BiomeId, BuildingTypeId, ResourceMap, TerrainType } from "../types";
+import type {
+  BiomeId,
+  BuildingCategory,
+  BuildingTypeId,
+  ResourceId,
+  ResourceMap,
+  TerrainType,
+} from "../types";
 import type { UpgradeNode } from "./upgrades";
 
 /** A production recipe: consume inputs -> produce outputs every `cycleTicks`. */
@@ -18,6 +25,8 @@ export interface ProductionRecipe {
    * least `min` tiles of `terrain` touch its footprint (4-neighbourhood).
    */
   requiresAdjacent?: { terrain: TerrainType; min: number };
+  /** Must be adjacent to a `deposit` tile carrying this buried resource (mines). */
+  requiresDepositAdjacent?: ResourceId;
 }
 
 export interface BuildingDef {
@@ -324,6 +333,66 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
     upgrades: EXTRACTOR_TREE,
     recipe: { inputs: {}, outputs: { ore: 1 }, cycleTicks: 12 },
   },
+  copper_mine: {
+    id: "copper_mine",
+    name: "Copper Mine",
+    description: "Mines Copper from a copper deposit. Needs Prospecting.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 15, stone: 10 },
+    buildableOn: ["grass", "dirt", "rock"],
+    color: 0xb87333,
+    workers: 3,
+    requiresTech: "prospecting",
+    spriteAlias: "quarry",
+    upgrades: EXTRACTOR_TREE,
+    recipe: { inputs: {}, outputs: { copper: 1 }, cycleTicks: 12, requiresDepositAdjacent: "copper" },
+  },
+  tin_mine: {
+    id: "tin_mine",
+    name: "Tin Mine",
+    description: "Mines Tin from a tin deposit. Needs Prospecting.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 15, stone: 10 },
+    buildableOn: ["grass", "dirt", "rock"],
+    color: 0xb0b0b8,
+    workers: 3,
+    requiresTech: "prospecting",
+    spriteAlias: "quarry",
+    upgrades: EXTRACTOR_TREE,
+    recipe: { inputs: {}, outputs: { tin: 1 }, cycleTicks: 12, requiresDepositAdjacent: "tin" },
+  },
+  smelter: {
+    id: "smelter",
+    name: "Smelter",
+    description: "Smelts Copper + Tin into Bronze. Needs Smelting.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 20, stone: 20 },
+    buildableOn: GROUND,
+    color: 0xa3713c,
+    workers: 3,
+    requiresTech: "smelting",
+    spriteAlias: "toolmaker",
+    upgrades: TOOLMAKER_TREE,
+    recipe: { inputs: { copper: 1, tin: 1 }, outputs: { bronze: 1 }, cycleTicks: 16 },
+  },
+  bronze_foundry: {
+    id: "bronze_foundry",
+    name: "Bronze Foundry",
+    description: "Forges Bronze Tools from Bronze. Needs Bronze Working.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 25, stone: 15 },
+    buildableOn: GROUND,
+    color: 0x9c6b3a,
+    workers: 3,
+    requiresTech: "bronze_working",
+    spriteAlias: "toolmaker",
+    upgrades: TOOLMAKER_TREE,
+    recipe: { inputs: { bronze: 1 }, outputs: { bronze_tools: 1 }, cycleTicks: 18 },
+  },
   storage: {
     id: "storage",
     name: "Storage Hut",
@@ -363,17 +432,50 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
 /** Buildings shown in the build bar, in order. Town Center is auto-placed. */
 export const BUILDABLE_ORDER: BuildingTypeId[] = [
   "hut",
-  "forester",
   "gatherer",
-  "quarry",
-  "toolmaker",
   "farm",
   "hunter",
+  "forester",
+  "quarry",
   "reed_cutter",
   "sand_pit",
   "miner",
+  "copper_mine",
+  "tin_mine",
+  "toolmaker",
+  "smelter",
+  "bronze_foundry",
   "storage",
   "market",
+];
+
+/** Build-menu category per building (for grouping the build bar). */
+export const BUILDING_CATEGORY: Record<BuildingTypeId, BuildingCategory> = {
+  town_center: "housing",
+  hut: "housing",
+  gatherer: "food",
+  farm: "food",
+  hunter: "food",
+  forester: "extraction",
+  quarry: "extraction",
+  reed_cutter: "extraction",
+  sand_pit: "extraction",
+  miner: "extraction",
+  copper_mine: "extraction",
+  tin_mine: "extraction",
+  toolmaker: "crafting",
+  smelter: "crafting",
+  bronze_foundry: "crafting",
+  storage: "logistics",
+  market: "logistics",
+};
+
+export const CATEGORY_ORDER: BuildingCategory[] = [
+  "housing",
+  "food",
+  "extraction",
+  "crafting",
+  "logistics",
 ];
 
 export function getBuildingDef(type: BuildingTypeId): BuildingDef {

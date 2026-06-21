@@ -11,7 +11,7 @@ import type { Region, ResourceMap, ResourceId } from "../types";
 import { getBuildingDef } from "../buildings/registry";
 import { aggregateEffects } from "../buildings/upgrades";
 import { canAfford, deposit, spend } from "../economy/resources";
-import { countAdjacentTerrain } from "../world";
+import { countAdjacentDeposit, countAdjacentTerrain } from "../world";
 
 function scaleMap(map: ResourceMap, factor: number): ResourceMap {
   const out: ResourceMap = {};
@@ -39,9 +39,18 @@ export function laborRatio(region: Region): number {
 function adjacencyMet(region: Region, id: string): boolean {
   const b = region.buildings[id];
   const def = getBuildingDef(b.type);
-  const req = def.recipe?.requiresAdjacent;
-  if (!req) return true;
-  return countAdjacentTerrain(region, def, b.col, b.row, req.terrain) >= req.min;
+  const recipe = def.recipe;
+  if (!recipe) return true;
+  if (recipe.requiresAdjacent) {
+    const { terrain, min } = recipe.requiresAdjacent;
+    if (countAdjacentTerrain(region, def, b.col, b.row, terrain) < min) return false;
+  }
+  if (recipe.requiresDepositAdjacent) {
+    if (countAdjacentDeposit(region, def, b.col, b.row, recipe.requiresDepositAdjacent) < 1) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function stepProduction(region: Region): void {

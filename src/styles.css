@@ -121,15 +121,41 @@ button:hover {
 }
 
 /* --- build bar --- */
-.build-bar {
+.build-area {
   position: absolute;
-  bottom: 18px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 96vw;
+}
+
+.cat-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+.cat-tab {
+  padding: 5px 13px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.cat-tab.active {
+  background: rgba(95, 211, 163, 0.16);
+  border-color: var(--accent);
+}
+
+.build-bar {
+  display: flex;
   gap: 8px;
   padding: 10px;
-  max-width: 94vw;
+  max-width: 96vw;
   overflow-x: auto;
 }
 
@@ -452,12 +478,97 @@ button:hover {
   color: var(--danger);
 }
 
+/* --- left stack (research + routes) --- */
+.left-stack {
+  position: absolute;
+  top: 62px;
+  left: 14px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- research panel --- */
+.research {
+  width: 100%;
+  padding: 0;
+}
+
+.research-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.research-pts {
+  margin-left: auto;
+  color: #9ee6b4;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.research-head .routes-caret {
+  margin-left: 4px;
+}
+
+.research-body {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tech-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.tech-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.tech-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tech-desc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tech-row.done .tech-name {
+  color: var(--accent);
+}
+
+.tech-btn {
+  padding: 4px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tech-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tech-tag {
+  font-size: 11px;
+  color: var(--muted);
+}
+
 /* --- trade routes panel --- */
 .routes {
-  position: absolute;
-  top: 66px;
-  left: 14px;
-  width: 234px;
+  width: 100%;
   padding: 0;
 }
 

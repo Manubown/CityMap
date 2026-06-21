@@ -10,6 +10,7 @@
 import type { GameState } from "./types";
 import { stepProduction } from "./systems/production";
 import { stepPopulation } from "./systems/population";
+import { stepResearch } from "./systems/research";
 import { stepRoutes } from "./systems/routes";
 
 export const TICK_RATE = 4; // simulation ticks per second
@@ -29,7 +30,8 @@ export function stepGame(state: GameState): void {
     state.coins += stepPopulation(region); // taxes flow to the global treasury
     // [M6] stepAgents(region) inserts here.
   }
-  // [M2] stepResearch(state) and [M5] stepSkillPoints(state) insert here.
+  stepResearch(state);
+  // [M5] stepSkillPoints(state) inserts here.
   stepRoutes(state);
 }
 

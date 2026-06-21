@@ -16,6 +16,7 @@ import type {
   Region,
   RegionKind,
   ResearchState,
+  ResourceId,
   TerrainType,
   WorldCoord,
 } from "./types";
@@ -82,6 +83,22 @@ export function countAdjacentTerrain(
   return n;
 }
 
+/** Count `deposit` tiles carrying `resource` adjacent to the footprint. */
+export function countAdjacentDeposit(
+  region: Region,
+  def: BuildingDef,
+  col: number,
+  row: number,
+  resource: ResourceId,
+): number {
+  let n = 0;
+  for (const p of neighbourTiles(def, col, row)) {
+    const t = tileAt(region.map, p.col, p.row);
+    if (t && t.deposit === resource) n++;
+  }
+  return n;
+}
+
 export interface PlacementCheck {
   ok: boolean;
   reason?: string;
@@ -110,6 +127,13 @@ export function canPlace(
     const { terrain, min } = def.recipe.requiresAdjacent;
     if (countAdjacentTerrain(region, def, col, row, terrain) < min) {
       return { ok: false, reason: `Needs ${terrain} nearby` };
+    }
+  }
+
+  if (def.recipe?.requiresDepositAdjacent) {
+    const res = def.recipe.requiresDepositAdjacent;
+    if (countAdjacentDeposit(region, def, col, row, res) < 1) {
+      return { ok: false, reason: `Needs a ${res} deposit nearby` };
     }
   }
 

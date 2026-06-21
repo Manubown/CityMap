@@ -1,48 +1,98 @@
+import { useState } from "react";
 import { useGameStore } from "./store";
-import { BUILDABLE_ORDER, BUILDINGS } from "../engine/buildings/registry";
+import {
+  BUILDABLE_ORDER,
+  BUILDINGS,
+  BUILDING_CATEGORY,
+  CATEGORY_ORDER,
+} from "../engine/buildings/registry";
 import { canAfford } from "../engine/economy/resources";
 import { resourceMapString } from "./format";
+import type { BuildingCategory } from "../engine/types";
+
+const CATEGORY_LABEL: Record<BuildingCategory, string> = {
+  housing: "Homes",
+  food: "Food",
+  extraction: "Resources",
+  crafting: "Crafting",
+  logistics: "Trade",
+};
 
 export function BuildBar() {
   const buildMode = useGameStore((s) => s.buildMode);
   const stock = useGameStore((s) => s.stock);
   const regions = useGameStore((s) => s.regions);
+  const completedTechs = useGameStore((s) => s.completedTechs);
+  const unlockedSkills = useGameStore((s) => s.unlockedSkills);
+  const techs = useGameStore((s) => s.techs);
   const setBuildMode = useGameStore((s) => s.setBuildMode);
   const cancelBuild = useGameStore((s) => s.cancelBuild);
+  const [cat, setCat] = useState<BuildingCategory>("food");
 
   const activeBiome = regions.find((r) => r.active)?.biome;
+  const techName = (id: string) => techs.find((t) => t.id === id)?.name ?? id;
+  const buildings = BUILDABLE_ORDER.filter((id) => BUILDING_CATEGORY[id] === cat);
 
   return (
-    <div className="build-bar panel">
-      {BUILDABLE_ORDER.map((id) => {
-        const def = BUILDINGS[id];
-        const active = buildMode === id;
-        const affordable = canAfford(stock, def.cost);
-        const biomeLocked = !!def.requiresBiome && def.requiresBiome !== activeBiome;
-        const costLabel = biomeLocked
-          ? `🔒 ${def.requiresBiome}`
-          : Object.keys(def.cost).length
-            ? resourceMapString(def.cost)
-            : "Free";
-        const cls = biomeLocked ? " locked" : affordable ? "" : " poor";
-        return (
+    <div className="build-area">
+      <div className="cat-tabs panel">
+        {CATEGORY_ORDER.map((c) => (
           <button
-            key={id}
-            className={`build-btn${active ? " active" : ""}${cls}`}
-            title={biomeLocked ? `Needs a ${def.requiresBiome} region` : def.description}
-            disabled={biomeLocked}
-            onClick={() => (active ? cancelBuild() : setBuildMode(id))}
+            key={c}
+            className={`cat-tab${c === cat ? " active" : ""}`}
+            onClick={() => setCat(c)}
           >
-            <img
-              className="swatch-img"
-              src={`/assets/buildings/${def.spriteAlias ?? id}.png`}
-              alt={def.name}
-            />
-            <span className="b-name">{def.name}</span>
-            <span className="b-cost">{costLabel}</span>
+            {CATEGORY_LABEL[c]}
           </button>
-        );
-      })}
+        ))}
+      </div>
+
+      <div className="build-bar panel">
+        {buildings.map((id) => {
+          const def = BUILDINGS[id];
+          const active = buildMode === id;
+          const affordable = canAfford(stock, def.cost);
+          const biomeLocked = !!def.requiresBiome && def.requiresBiome !== activeBiome;
+          const techLocked = !!def.requiresTech && !completedTechs.includes(def.requiresTech);
+          const skillLocked = !!def.requiresSkill && !unlockedSkills.includes(def.requiresSkill);
+          const locked = biomeLocked || techLocked || skillLocked;
+
+          const costLabel = biomeLocked
+            ? `🔒 ${def.requiresBiome}`
+            : techLocked
+              ? `🔬 ${techName(def.requiresTech!)}`
+              : skillLocked
+                ? "🔒 skill"
+                : Object.keys(def.cost).length
+                  ? resourceMapString(def.cost)
+                  : "Free";
+          const title = biomeLocked
+            ? `Needs a ${def.requiresBiome} region`
+            : techLocked
+              ? `Research "${techName(def.requiresTech!)}" first`
+              : skillLocked
+                ? "Unlock the skill first"
+                : def.description;
+
+          return (
+            <button
+              key={id}
+              className={`build-btn${active ? " active" : ""}${locked ? " locked" : affordable ? "" : " poor"}`}
+              title={title}
+              disabled={locked}
+              onClick={() => (active ? cancelBuild() : setBuildMode(id))}
+            >
+              <img
+                className="swatch-img"
+                src={`/assets/buildings/${def.spriteAlias ?? id}.png`}
+                alt={def.name}
+              />
+              <span className="b-name">{def.name}</span>
+              <span className="b-cost">{costLabel}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

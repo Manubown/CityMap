@@ -4,6 +4,7 @@ import { BuildBar } from "./BuildBar";
 import { SelectionPanel } from "./SelectionPanel";
 import { RegionTabs } from "./RegionTabs";
 import { RoutesPanel } from "./RoutesPanel";
+import { ResearchPanel } from "./ResearchPanel";
 
 export function Hud() {
   const running = useGameStore((s) => s.running);
@@ -20,7 +21,10 @@ export function Hud() {
     <div className="hud">
       <ResourceBar />
       <RegionTabs />
-      <RoutesPanel />
+      <div className="left-stack">
+        <ResearchPanel />
+        <RoutesPanel />
+      </div>
 
       <div className="controls panel">
         <span className="stat">🏚 {buildingCount}</span>

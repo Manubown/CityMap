@@ -49,6 +49,9 @@ export type ResourceId =
   | "bronze"
   | "bronze_tools";
 
+/** Build-menu category, for grouping buildings as the roster grows. */
+export type BuildingCategory = "housing" | "food" | "extraction" | "crafting" | "logistics";
+
 /** Region role on the world map. */
 export type RegionKind = "player" | "npc" | "site";
 
@@ -73,7 +76,12 @@ export type BuildingTypeId =
   | "hunter"
   | "reed_cutter"
   | "sand_pit"
-  | "miner";
+  | "miner"
+  // bronze chain (M2)
+  | "copper_mine"
+  | "tin_mine"
+  | "smelter"
+  | "bronze_foundry";
 
 /** A single map tile. */
 export interface Tile {

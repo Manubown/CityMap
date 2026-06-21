@@ -68,6 +68,16 @@ export interface RouteInfo {
   rate: number;
 }
 
+export interface TechInfo {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  completed: boolean;
+  available: boolean;
+  affordable: boolean;
+}
+
 export interface GameStore {
   // --- data pushed by the controller (active region + global) ---
   stock: Record<ResourceId, number>;
@@ -86,6 +96,13 @@ export interface GameStore {
   regions: RegionInfo[];
   activeRegionId: string;
   routes: RouteInfo[];
+  // research / progression
+  age: number;
+  ageName: string;
+  researchPoints: number;
+  completedTechs: string[];
+  unlockedSkills: string[];
+  techs: TechInfo[];
 
   // --- actions (replaced by the controller on start) ---
   setBuildMode: (type: BuildingTypeId) => void;
@@ -94,6 +111,7 @@ export interface GameStore {
   clearSelection: () => void;
   trade: (res: ResourceId, dir: "buy" | "sell") => void;
   upgrade: (nodeId: string) => void;
+  research: (techId: string) => void;
   switchRegion: (id: string) => void;
   claimRegion: (id: string) => void;
   addRoute: (from: string, to: string, res: ResourceId) => void;
@@ -122,6 +140,12 @@ export const useGameStore = create<GameStore>(() => ({
   regions: [],
   activeRegionId: "",
   routes: [],
+  age: 1,
+  ageName: "Stone Age",
+  researchPoints: 0,
+  completedTechs: [],
+  unlockedSkills: [],
+  techs: [],
 
   setBuildMode: noop,
   cancelBuild: noop,
@@ -129,6 +153,7 @@ export const useGameStore = create<GameStore>(() => ({
   clearSelection: noop,
   trade: noop,
   upgrade: noop,
+  research: noop,
   switchRegion: noop,
   claimRegion: noop,
   addRoute: noop,
