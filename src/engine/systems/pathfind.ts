@@ -18,7 +18,7 @@ const EXPLORE_CAP = 1600;
 
 function walkable(map: GameMap, col: number, row: number): boolean {
   const t = tileAt(map, col, row);
-  return !!t && t.terrain !== "water";
+  return !!t && t.terrain !== "water" && !t.buildingId; // route around buildings
 }
 
 /** The next tile to step to from `from` toward `to`, or null if arrived/unreachable. */

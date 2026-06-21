@@ -103,6 +103,28 @@ export function countAdjacentDeposit(
   return n;
 }
 
+/** The open tile a building's door faces. facing: 0=S, 1=E, 2=N, 3=W. */
+export function doorTileFor(
+  def: BuildingDef,
+  col: number,
+  row: number,
+  facing: number,
+): GridPos {
+  const { w, h } = def.footprint;
+  const midC = col + Math.floor((w - 1) / 2);
+  const midR = row + Math.floor((h - 1) / 2);
+  switch (((facing % 4) + 4) % 4) {
+    case 1:
+      return { col: col + w, row: midR }; // East
+    case 2:
+      return { col: midC, row: row - 1 }; // North
+    case 3:
+      return { col: col - 1, row: midR }; // West
+    default:
+      return { col: midC, row: row + h }; // South
+  }
+}
+
 export interface PlacementCheck {
   ok: boolean;
   reason?: string;
@@ -114,7 +136,7 @@ export function canPlace(
   type: BuildingTypeId,
   col: number,
   row: number,
-  opts: { free?: boolean } = {},
+  opts: { free?: boolean; facing?: number } = {},
 ): PlacementCheck {
   const def = getBuildingDef(type);
 
@@ -125,6 +147,14 @@ export function canPlace(
     if (!def.buildableOn.includes(tile.terrain)) {
       return { ok: false, reason: `Can't build on ${tile.terrain}` };
     }
+  }
+
+  // The door side must stay open so villagers can reach it (other sides may
+  // touch neighbouring buildings). Rotate with R to change which side that is.
+  const door = doorTileFor(def, col, row, opts.facing ?? 0);
+  const dt = tileAt(region.map, door.col, door.row);
+  if (!dt || dt.terrain === "water" || dt.buildingId) {
+    return { ok: false, reason: "Keep the door side clear (R to rotate)" };
   }
 
   if (def.recipe?.requiresAdjacent) {
@@ -160,7 +190,7 @@ export function placeBuilding(
   type: BuildingTypeId,
   col: number,
   row: number,
-  opts: { free?: boolean } = {},
+  opts: { free?: boolean; facing?: number } = {},
 ): BuildingInstance | null {
   if (!canPlace(region, type, col, row, opts).ok) return null;
 
@@ -173,6 +203,7 @@ export function placeBuilding(
     type,
     col,
     row,
+    facing: opts.facing ?? 0,
     progress: 0,
     productivity: 0,
     upgrades: [],

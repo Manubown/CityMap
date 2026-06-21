@@ -110,6 +110,8 @@ export interface BuildingInstance {
   /** Anchor tile (top corner of the footprint, smallest col/row). */
   col: number;
   row: number;
+  /** Door direction: 0=S, 1=E, 2=N, 3=W. The door side stays open for villagers. */
+  facing?: number;
   /** Production progress in the current cycle, 0..1. */
   progress: number;
   /** Cached productivity (0..1) from the last tick — drives UI + production. */

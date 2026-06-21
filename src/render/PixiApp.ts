@@ -15,6 +15,7 @@ import { buildTerrainLayer, TERRAIN_SPRITE_PATHS } from "./TerrainLayer";
 import { EntityLayer, DECOR_SPRITE_PATHS } from "./EntityLayer";
 import { AgentLayer } from "./AgentLayer";
 import { StatusLayer } from "./StatusLayer";
+import { PathLayer } from "./PathLayer";
 import { Overlay } from "./ghost";
 
 const BUILDING_IDS: BuildingTypeId[] = [
@@ -37,6 +38,7 @@ export class GameRenderer {
   private world = new Container();
   private terrain = new Container();
   private entities!: EntityLayer;
+  private pathLayer = new PathLayer();
   private agentLayer = new AgentLayer();
   private statusLayer = new StatusLayer();
   private overlay = new Overlay();
@@ -58,6 +60,7 @@ export class GameRenderer {
   onHoverTile?: (tile: GridPos | null) => void;
   onClickTile?: (tile: GridPos, button: number) => void;
   onCancel?: () => void;
+  onRotate?: () => void;
 
   async init(parent: HTMLElement): Promise<void> {
     await this.app.init({
@@ -75,6 +78,7 @@ export class GameRenderer {
     this.entities = new EntityLayer((type) => this.textures.get("building/" + type));
 
     this.world.addChild(this.terrain);
+    this.world.addChild(this.pathLayer.container);
     this.world.addChild(this.entities.container);
     this.world.addChild(this.agentLayer.container);
     this.world.addChild(this.statusLayer.container);
@@ -118,6 +122,7 @@ export class GameRenderer {
     this.entities.sync(region);
     this.entities.setDecor(region.map, (path) => this.textures.get(path));
     this.agentLayer.clear();
+    this.pathLayer.clear();
     this.overlay.attach(region);
 
     const bounds = this.worldBounds(region);
@@ -152,8 +157,8 @@ export class GameRenderer {
     this.entities.setDecor(this.region.map, (path) => this.textures.get(path));
   }
 
-  setGhost(type: BuildingTypeId | null): void {
-    this.overlay.setGhost(type);
+  setGhost(type: BuildingTypeId | null, facing = 0): void {
+    this.overlay.setGhost(type, facing);
   }
 
   setSelection(id: string | null): void {
@@ -181,6 +186,7 @@ export class GameRenderer {
   private update(dtMs: number): void {
     this.elapsed += dtMs;
     this.statusLayer.update(this.region, this.elapsed);
+    this.pathLayer.update(this.region);
     if (!this.camera) return;
     const dt = dtMs / 1000;
     const step = (KEY_PAN_SPEED * dt) / this.camera.zoom;
@@ -268,6 +274,7 @@ export class GameRenderer {
   private onKeyDown = (e: KeyboardEvent): void => {
     const k = e.key.toLowerCase();
     if (k === "escape") this.onCancel?.();
+    if (k === "r") this.onRotate?.();
     this.keys.add(k);
   };
 

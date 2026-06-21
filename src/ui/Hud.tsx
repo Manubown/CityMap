@@ -52,7 +52,9 @@ export function Hud() {
 
       <InstructionCard />
 
-      {buildMode && <div className="mode-flag panel">Building mode — Esc to cancel</div>}
+      {buildMode && (
+        <div className="mode-flag panel">Building — R to rotate the door · Esc to cancel</div>
+      )}
       {clearMode && (
         <div className="mode-flag panel">
           🪓 Clear mode — forest 🪙5 / rock 🪙10 · Esc to cancel

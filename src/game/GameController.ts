@@ -65,6 +65,7 @@ export class GameController {
   private clock = new SimClock();
   private state!: GameState;
   private selectedId: string | null = null;
+  private buildFacing = 0;
   private pushAccum = 0;
   private autosaveAccum = 0;
   private messageTimer: ReturnType<typeof setTimeout> | null = null;
@@ -88,6 +89,7 @@ export class GameController {
     this.renderer.onClickTile = (tile, button) => this.onClickTile(tile, button);
     this.renderer.onHoverTile = (tile) => this.onHover(tile);
     this.renderer.onCancel = () => this.cancelBuild();
+    this.renderer.onRotate = () => this.rotateBuild();
 
     this.bindStoreActions();
     this.pushSnapshot();
@@ -170,7 +172,9 @@ export class GameController {
       this.flashMessage("Unlock the skill first");
       return;
     }
-    const placed = placeBuilding(this.region, type, tile.col, tile.row);
+    const placed = placeBuilding(this.region, type, tile.col, tile.row, {
+      facing: this.buildFacing,
+    });
     if (placed) {
       placed.built = false; // a player build starts as a construction site
       placed.buildProgress = 0;
@@ -194,8 +198,9 @@ export class GameController {
     useGameStore.setState({
       setBuildMode: (type) => {
         this.selectedId = null;
+        this.buildFacing = 0;
         this.renderer.setSelection(null);
-        this.renderer.setGhost(type);
+        this.renderer.setGhost(type, this.buildFacing);
         useGameStore.setState({ buildMode: type, clearMode: false });
       },
       cancelBuild: () => this.cancelBuild(),
@@ -229,6 +234,13 @@ export class GameController {
   private cancelBuild(): void {
     this.renderer.setGhost(null);
     useGameStore.setState({ buildMode: null, clearMode: false });
+  }
+
+  private rotateBuild(): void {
+    const buildMode = useGameStore.getState().buildMode;
+    if (!buildMode) return;
+    this.buildFacing = (this.buildFacing + 1) % 4;
+    this.renderer.setGhost(buildMode, this.buildFacing);
   }
 
   private trade(res: ResourceId, dir: "buy" | "sell"): void {

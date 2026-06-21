@@ -11,6 +11,7 @@ import { getBuildingDef } from "../buildings/registry";
 import { tileAt } from "../map/generate";
 import { nextStep } from "./pathfind";
 import { dayFraction } from "../time";
+import { doorTileFor } from "../world";
 
 export const DAY_LENGTH = 240; // ticks per day-cycle (~60s at TICK_RATE 4)
 export const AGENT_CAP = 60; // villagers shown per region
@@ -29,7 +30,31 @@ function worksOf(region: Region): BuildingInstance[] {
 
 function walkable(region: Region, col: number, row: number): boolean {
   const t = tileAt(region.map, col, row);
-  return !!t && t.terrain !== "water";
+  return !!t && t.terrain !== "water" && !t.buildingId;
+}
+
+/** The "door" tile villagers walk to/from — the building's facing side if open,
+ *  else any open neighbour. */
+function doorTile(region: Region, b: BuildingInstance): GridPos {
+  const def = getBuildingDef(b.type);
+  const d = doorTileFor(def, b.col, b.row, b.facing ?? 0);
+  if (walkable(region, d.col, d.row)) return d;
+  const { w, h } = def.footprint;
+  for (let dr = 0; dr < h; dr++) {
+    for (let dc = 0; dc < w; dc++) {
+      const c = b.col + dc;
+      const r = b.row + dr;
+      for (const [nc, nr] of [
+        [c, r + 1],
+        [c + 1, r],
+        [c - 1, r],
+        [c, r - 1],
+      ]) {
+        if (walkable(region, nc, nr)) return { col: nc, row: nr };
+      }
+    }
+  }
+  return { col: b.col, row: b.row };
 }
 
 /** A small deterministic "stroll" target near home for workless residents. */
@@ -54,15 +79,16 @@ function syncCount(region: Region): void {
     const id = region.agentSeq++;
     const home = homes[id % homes.length];
     const work = works.length ? works[id % works.length] : null;
+    const door = doorTile(region, home);
     region.agents.push({
       id,
       role: work ? work.type : "resident",
       homeId: home.id,
       workId: work ? work.id : null,
-      col: home.col,
-      row: home.row,
-      ncol: home.col,
-      nrow: home.row,
+      col: door.col,
+      row: door.row,
+      ncol: door.col,
+      nrow: door.row,
       progress: 0,
       state: "home",
     });
@@ -80,10 +106,10 @@ function advance(region: Region, a: Agent, workTime: boolean): void {
   const dest: GridPos | null =
     a.state === "toWork"
       ? work
-        ? { col: work.col, row: work.row }
+        ? doorTile(region, work)
         : wanderDest(region, a, home)
       : a.state === "toHome"
-        ? { col: home.col, row: home.row }
+        ? doorTile(region, home)
         : null;
 
   a.progress += MOVE_STEP;
