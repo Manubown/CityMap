@@ -8,6 +8,8 @@ import type { GameState, Region, ResourceId } from "./types";
 import { getBuildingDef } from "./buildings/registry";
 import { aggregateEffects } from "./buildings/upgrades";
 import { tierOf } from "./systems/population";
+import { routeCapacity } from "./systems/routes";
+import { getRegion } from "./world";
 import { aggregateSkillEffects } from "./skills/skilltree";
 import { RESOURCES } from "./economy/resources";
 
@@ -44,10 +46,15 @@ export function resourceFlows(state: GameState, region: Region): Record<Resource
     }
   }
 
-  // Trade routes move goods between your regions.
+  // Trade routes move goods between your regions (scaled by Wagon Yards).
   for (const rt of state.routes) {
-    if (rt.fromRegion === region.id) flows[rt.resource].consumed += rt.rate;
-    if (rt.toRegion === region.id) flows[rt.resource].produced += rt.rate;
+    if (rt.fromRegion === region.id) {
+      flows[rt.resource].consumed += rt.rate * routeCapacity(region);
+    }
+    if (rt.toRegion === region.id) {
+      const from = getRegion(state, rt.fromRegion);
+      flows[rt.resource].produced += rt.rate * (from ? routeCapacity(from) : 1);
+    }
   }
 
   // Standing NPC deals.

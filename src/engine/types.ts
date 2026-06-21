@@ -83,7 +83,8 @@ export type BuildingTypeId =
   | "smelter"
   | "bronze_foundry"
   // civic
-  | "builder_hut";
+  | "builder_hut"
+  | "wagon_yard";
 
 /** A single map tile. */
 export interface Tile {

@@ -54,6 +54,8 @@ export interface BuildingDef {
   buildTicks?: number;
   /** Build capacity this building provides (Builder's Hut). */
   buildCapacity?: number;
+  /** Trade-route throughput this building adds to its region (Wagon Yard). */
+  routeBoost?: number;
   /** Reuse another building's sprite + manifest entry (e.g. market -> storage). */
   spriteAlias?: BuildingTypeId;
   /** Selecting this building opens the trade panel. */
@@ -174,6 +176,35 @@ const TOWN_TREE: UpgradeNode[] = [
     coins: 40,
     requires: ["house1"],
     effects: { taxMult: 1.3 },
+  },
+];
+
+const WAGON_TREE: UpgradeNode[] = [
+  {
+    id: "wagon1",
+    name: "Bigger Carts",
+    description: "Trade routes from this city carry +50% more.",
+    cost: { wood: 30, tools: 5 },
+    coins: 25,
+    effects: { routeMult: 1.5 },
+  },
+  {
+    id: "wagon2",
+    name: "Paved Roads",
+    description: "Another +50% route throughput.",
+    cost: { stone: 40, tools: 10 },
+    coins: 45,
+    requires: ["wagon1"],
+    effects: { routeMult: 1.5 },
+  },
+  {
+    id: "wagon3",
+    name: "Freight Wagons",
+    description: "Another +50% route throughput.",
+    cost: { wood: 60, tools: 20 },
+    coins: 80,
+    requires: ["wagon2"],
+    effects: { routeMult: 1.5 },
   },
 ];
 
@@ -444,6 +475,19 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
     buildCapacity: 2,
     buildTicks: 16,
   },
+  wagon_yard: {
+    id: "wagon_yard",
+    name: "Wagon Yard",
+    description: "Boosts this city's trade routes. Upgrade its levels to transport more.",
+    age: 1,
+    footprint: { w: 2, h: 1 },
+    cost: { wood: 30, stone: 15 },
+    buildableOn: GROUND,
+    color: 0x9c6f3e,
+    spriteAlias: "storage",
+    routeBoost: 0.5,
+    upgrades: WAGON_TREE,
+  },
 };
 
 /** Buildings shown in the build bar, in order. Town Center is auto-placed. */
@@ -463,6 +507,7 @@ export const BUILDABLE_ORDER: BuildingTypeId[] = [
   "smelter",
   "bronze_foundry",
   "builder_hut",
+  "wagon_yard",
   "storage",
   "market",
 ];
@@ -487,6 +532,7 @@ export const BUILDING_CATEGORY: Record<BuildingTypeId, BuildingCategory> = {
   storage: "logistics",
   market: "logistics",
   builder_hut: "logistics",
+  wagon_yard: "logistics",
 };
 
 /** Default ticks to construct a building if its def doesn't specify. */

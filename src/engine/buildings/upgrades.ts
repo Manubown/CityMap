@@ -16,6 +16,7 @@ export interface UpgradeEffects {
   workersMult?: number; // worker requirement (<1 needs fewer)
   housingAdd?: number; // extra resident capacity
   taxMult?: number; // tax multiplier (residences)
+  routeMult?: number; // trade-route throughput contribution (logistics)
 }
 
 export interface UpgradeNode {
@@ -35,10 +36,19 @@ export interface AggregatedEffects {
   workersMult: number;
   housingAdd: number;
   taxMult: number;
+  routeMult: number;
 }
 
 export function emptyEffects(): AggregatedEffects {
-  return { speedMult: 1, outputMult: 1, inputMult: 1, workersMult: 1, housingAdd: 0, taxMult: 1 };
+  return {
+    speedMult: 1,
+    outputMult: 1,
+    inputMult: 1,
+    workersMult: 1,
+    housingAdd: 0,
+    taxMult: 1,
+    routeMult: 1,
+  };
 }
 
 /** Combine the effects of every upgrade a building has unlocked. */
@@ -54,6 +64,7 @@ export function aggregateEffects(b: BuildingInstance): AggregatedEffects {
     if (e.workersMult) eff.workersMult *= e.workersMult;
     if (e.housingAdd) eff.housingAdd += e.housingAdd;
     if (e.taxMult) eff.taxMult *= e.taxMult;
+    if (e.routeMult) eff.routeMult *= e.routeMult;
   }
   return eff;
 }
