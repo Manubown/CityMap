@@ -18,6 +18,9 @@ export const TERRAIN_COLORS: Record<TerrainType, number> = {
   water: 0x4a86c0,
   rock: 0x9aa0a6,
   dirt: 0xb7895c,
+  sand: 0xd9c89a,
+  wetland: 0x5f7d52,
+  deposit: 0x8a7a6a,
 };
 
 /** Multiply an RGB hex colour by `factor` (<1 darkens, >1 lightens). */

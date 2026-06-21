@@ -19,13 +19,37 @@ export const RESOURCES: Record<ResourceId, ResourceDef> = {
   stone: { id: "stone", name: "Stone", glyph: "🪨", color: 0x9aa0a6 },
   food: { id: "food", name: "Food", glyph: "🍖", color: 0xc0573a },
   tools: { id: "tools", name: "Tools", glyph: "🪓", color: 0x6b7b8c },
+  // biome raws (M1)
+  grain: { id: "grain", name: "Grain", glyph: "🌾", color: 0xd9b24a },
+  game: { id: "game", name: "Game", glyph: "🍗", color: 0xb5651d },
+  reeds: { id: "reeds", name: "Reeds", glyph: "🎋", color: 0x6f8f4a },
+  sand: { id: "sand", name: "Sand", glyph: "🏖️", color: 0xd9c89a },
+  ore: { id: "ore", name: "Ore", glyph: "⛏️", color: 0x8a7a6a },
+  // bronze chain (M2)
+  copper: { id: "copper", name: "Copper", glyph: "🟠", color: 0xb87333 },
+  tin: { id: "tin", name: "Tin", glyph: "⚪", color: 0xb0b0b8 },
+  bronze: { id: "bronze", name: "Bronze", glyph: "🟫", color: 0xa3713c },
+  bronze_tools: { id: "bronze_tools", name: "Bronze Tools", glyph: "⚒️", color: 0x9c6b3a },
 };
 
+/**
+ * Resources shown in the HUD bar. Stays the base 4 until M1/M2 reveal the rest
+ * (the others exist in stock at 0 but aren't displayed yet).
+ */
 export const RESOURCE_ORDER: ResourceId[] = ["wood", "stone", "food", "tools"];
 
-/** Starting stockpile for a fresh game. */
+/** A stock record with every resource present (avoids undefined -> NaN). */
+export function emptyStock(): Record<ResourceId, number> {
+  return {
+    wood: 0, stone: 0, food: 0, tools: 0,
+    grain: 0, game: 0, reeds: 0, sand: 0, ore: 0,
+    copper: 0, tin: 0, bronze: 0, bronze_tools: 0,
+  };
+}
+
+/** Starting stockpile for a fresh region. */
 export function startingStock(): Record<ResourceId, number> {
-  return { wood: 60, stone: 30, food: 25, tools: 0 };
+  return { ...emptyStock(), wood: 60, stone: 30, food: 25 };
 }
 
 /** True if `stock` can cover every entry in `cost`. */

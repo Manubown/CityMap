@@ -12,11 +12,51 @@ export interface GridPos {
   row: number;
 }
 
-/** Terrain kinds for Slice 1 (Stone Age). */
-export type TerrainType = "grass" | "forest" | "water" | "rock" | "dirt";
+/** Per-tile surface kind (paintable + buildable). */
+export type TerrainType =
+  | "grass"
+  | "forest"
+  | "water"
+  | "rock"
+  | "dirt"
+  | "sand"
+  | "wetland"
+  | "deposit";
 
-/** Resources tracked in the global stockpile for Slice 1. */
-export type ResourceId = "wood" | "stone" | "food" | "tools";
+/**
+ * Regional classification that drives which resources are reachable and which
+ * extractors are valid. A biome paints its tiles from a terrain palette.
+ */
+export type BiomeId = "plains" | "forest" | "mountains" | "wetland" | "desert" | "coast";
+
+/**
+ * Goods. Base (wood/stone/food/tools) + biome raws (grain/game/reeds/sand/ore)
+ * + the bronze chain (copper/tin/bronze/bronze_tools). Stock records are
+ * exhaustive over this union, so adding an id is a compile-enforced change.
+ */
+export type ResourceId =
+  | "wood"
+  | "stone"
+  | "food"
+  | "tools"
+  | "grain"
+  | "game"
+  | "reeds"
+  | "sand"
+  | "ore"
+  | "copper"
+  | "tin"
+  | "bronze"
+  | "bronze_tools";
+
+/** Region role on the world map. */
+export type RegionKind = "player" | "npc" | "site";
+
+/** Axial hex coordinate on the world map. */
+export interface WorldCoord {
+  q: number;
+  r: number;
+}
 
 /** Building type identifiers (Stone Age set). */
 export type BuildingTypeId =
@@ -67,7 +107,27 @@ export interface BuildingInstance {
 /** Partial stockpile delta / cost map. */
 export type ResourceMap = Partial<Record<ResourceId, number>>;
 
-/** A claimable region: its own land, buildings, stockpile and population. */
+/**
+ * A visible villager agent (M6). A deterministic projection of the aggregate
+ * population — agents never own economy. `path` is recomputed on load, never
+ * serialized. (Reserved here; behaviour lands in M6.)
+ */
+export interface Agent {
+  id: number;
+  role: string;
+  col: number;
+  row: number;
+}
+
+/** An NPC settlement's trading state (M3). Reserved here; behaviour in M3. */
+export interface NpcState {
+  archetype: string;
+  reputation: number;
+  /** Complete-by-construction over ResourceId to avoid NaN coins. */
+  prices: Record<ResourceId, { buy: number; sell: number }>;
+}
+
+/** A region: its own land, buildings, stockpile and population, sited on the world. */
 export interface Region {
   id: string;
   name: string;
@@ -77,10 +137,29 @@ export interface Region {
   stock: Record<ResourceId, number>;
   /** Villagers living in this region (float; displayed floored). */
   population: number;
-  /** False = an abandoned village you can still claim. */
+  /** False = an abandoned village/site you can still claim. */
   claimed: boolean;
   /** Coins required to claim it (0 for the starting region). */
   claimCost: number;
+  // --- world / biomes / agents (schema reserved in M0a) ---
+  /** Position on the world hex map. */
+  worldPos: WorldCoord;
+  /** player colony, npc settlement, or unclaimed site. */
+  kind: RegionKind;
+  /** Dominant biome (drives resources + node colour). */
+  biome: BiomeId;
+  /** Whether the player has discovered this node (fog of war, M3). */
+  discovered: boolean;
+  /** Seed its map was generated from (for lazy/regenerable maps, M3). */
+  mapSeed: number;
+  /** Visible villager agents (M6). */
+  agents: Agent[];
+  /** Monotonic id source for agents. */
+  agentSeq: number;
+  /** Day-cycle clock for agent schedules (M6). */
+  dayTick: number;
+  /** NPC trading state when kind === "npc" (M3). */
+  npc?: NpcState;
 }
 
 /** A standing order that moves one good between two regions each tick. */
@@ -93,6 +172,14 @@ export interface TradeRoute {
   rate: number;
 }
 
+/** Global research/tech progression (M2). points spent on the TECHS ladder. */
+export interface ResearchState {
+  age: number; // 1 = Stone, 2 = Bronze, ...
+  points: number;
+  completed: string[]; // unlocked tech ids
+  active: string | null; // tech currently being researched
+}
+
 /** Full serialisable game state. */
 export interface GameState {
   version: number;
@@ -102,4 +189,15 @@ export interface GameState {
   regions: Region[];
   activeRegionId: string;
   routes: TradeRoute[];
+  /** Master seed for deterministic world generation. */
+  worldSeed: number;
+  // --- progression (schema reserved in M0a) ---
+  /** Tech/age progression (M2). */
+  research: ResearchState;
+  /** Skill points for the global skill tree (M5). */
+  skillPoints: number;
+  /** Total SP ever awarded — idempotency guard so saves stay deterministic. */
+  skillPointsAwarded: number;
+  /** Unlocked skill-tree node ids (empire-wide, M5). */
+  unlockedSkills: string[];
 }

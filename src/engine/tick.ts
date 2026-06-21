@@ -14,14 +14,22 @@ import { stepRoutes } from "./systems/routes";
 
 export const TICK_RATE = 4; // simulation ticks per second
 
-/** Advance the whole simulation by one tick across every claimed region. */
+/**
+ * Advance the whole simulation by one tick across every claimed region.
+ *
+ * Fixed step order (later milestones insert in this order, never reorder):
+ *   production -> population -> [research (M2)] -> [skill points (M5)] ->
+ *   [agents (M6), per region] -> routes.
+ */
 export function stepGame(state: GameState): void {
   state.tick++;
   for (const region of state.regions) {
     if (!region.claimed) continue;
     stepProduction(region);
     state.coins += stepPopulation(region); // taxes flow to the global treasury
+    // [M6] stepAgents(region) inserts here.
   }
+  // [M2] stepResearch(state) and [M5] stepSkillPoints(state) insert here.
   stepRoutes(state);
 }
 
@@ -33,6 +41,11 @@ export class SimClock {
 
   get msPerTick(): number {
     return 1000 / this.ticksPerSecond;
+  }
+
+  /** Fraction (0..1) into the current tick — for render interpolation (M6). */
+  fraction(): number {
+    return Math.min(1, this.acc / this.msPerTick);
   }
 
   isRunning(): boolean {

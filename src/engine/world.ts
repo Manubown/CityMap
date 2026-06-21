@@ -8,28 +8,27 @@
  */
 
 import type {
-  BuildingInstance,
+  BiomeId,
   BuildingTypeId,
+  BuildingInstance,
   GameState,
   GridPos,
   Region,
-  ResourceId,
+  RegionKind,
+  ResearchState,
   TerrainType,
+  WorldCoord,
 } from "./types";
 import { getBuildingDef, type BuildingDef } from "./buildings/registry";
 import { generateMap, tileAt } from "./map/generate";
-import { canAfford, spend, startingStock } from "./economy/resources";
+import { canAfford, emptyStock, spend, startingStock } from "./economy/resources";
 import { START_POPULATION } from "./systems/population";
 
-export const STATE_VERSION = 4;
+export const STATE_VERSION = 5;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {
   return `b_${col}_${row}`;
-}
-
-function emptyStock(): Record<ResourceId, number> {
-  return { wood: 0, stone: 0, food: 0, tools: 0 };
 }
 
 export function getRegion(state: GameState, id: string): Region | undefined {
@@ -114,6 +113,12 @@ export function canPlace(
     }
   }
 
+  // Biome gate (region-local). Tech/skill gates are global and checked by the
+  // controller/BuildBar before placement (M2/M5).
+  if (def.requiresBiome && region.biome !== def.requiresBiome) {
+    return { ok: false, reason: `Needs ${def.requiresBiome} biome` };
+  }
+
   if (!opts.free && !canAfford(region.stock, def.cost)) {
     return { ok: false, reason: "Not enough resources" };
   }
@@ -180,24 +185,34 @@ function foundTownCenter(region: Region): void {
   region.population = START_POPULATION;
 }
 
-function createRegion(
-  id: string,
-  name: string,
-  seed: number,
-  claimed: boolean,
-  claimCost: number,
-): Region {
+interface RegionOpts {
+  claimed: boolean;
+  claimCost: number;
+  worldPos: WorldCoord;
+  kind: RegionKind;
+  biome: BiomeId;
+}
+
+function createRegion(id: string, name: string, seed: number, o: RegionOpts): Region {
   const region: Region = {
     id,
     name,
     map: generateMap(seed),
     buildings: {},
-    stock: claimed ? startingStock() : emptyStock(),
+    stock: o.claimed ? startingStock() : emptyStock(),
     population: 0,
-    claimed,
-    claimCost,
+    claimed: o.claimed,
+    claimCost: o.claimCost,
+    worldPos: o.worldPos,
+    kind: o.kind,
+    biome: o.biome,
+    discovered: o.claimed,
+    mapSeed: seed,
+    agents: [],
+    agentSeq: 0,
+    dayTick: 0,
   };
-  if (claimed) foundTownCenter(region);
+  if (o.claimed) foundTownCenter(region);
   return region;
 }
 
@@ -213,10 +228,26 @@ export function claimRegion(state: GameState, regionId: string): boolean {
   return true;
 }
 
+function freshResearch(): ResearchState {
+  return { age: 1, points: 0, completed: [], active: null };
+}
+
 /** Build a fresh game: a claimed homeland + an abandoned village to expand into. */
 export function createGame(seed: number): GameState {
-  const homeland = createRegion("r1", "Homeland", seed, true, 0);
-  const village = createRegion("r2", "Abandoned Village", seed + 1337, false, 80);
+  const homeland = createRegion("r1", "Homeland", seed, {
+    claimed: true,
+    claimCost: 0,
+    worldPos: { q: 0, r: 0 },
+    kind: "player",
+    biome: "plains",
+  });
+  const village = createRegion("r2", "Abandoned Village", seed + 1337, {
+    claimed: false,
+    claimCost: 80,
+    worldPos: { q: 1, r: 0 },
+    kind: "site",
+    biome: "forest",
+  });
   return {
     version: STATE_VERSION,
     tick: 0,
@@ -224,5 +255,10 @@ export function createGame(seed: number): GameState {
     regions: [homeland, village],
     activeRegionId: "r1",
     routes: [],
+    worldSeed: seed,
+    research: freshResearch(),
+    skillPoints: 0,
+    skillPointsAwarded: 0,
+    unlockedSkills: ["root"],
   };
 }

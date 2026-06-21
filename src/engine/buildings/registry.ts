@@ -4,7 +4,7 @@
  * GameState.buildings (see types.ts).
  */
 
-import type { BuildingTypeId, ResourceMap, TerrainType } from "../types";
+import type { BiomeId, BuildingTypeId, ResourceMap, TerrainType } from "../types";
 import type { UpgradeNode } from "./upgrades";
 
 /** A production recipe: consume inputs -> produce outputs every `cycleTicks`. */
@@ -47,6 +47,13 @@ export interface BuildingDef {
   trade?: boolean;
   /** Per-building skill tree (each placed instance unlocks nodes individually). */
   upgrades?: UpgradeNode[];
+  // --- progression gates (inert until content uses them) ---
+  /** Only buildable in regions of this biome (M1). */
+  requiresBiome?: BiomeId;
+  /** Requires this tech completed (M2). */
+  requiresTech?: string;
+  /** Requires this global skill-tree node unlocked (M5). */
+  requiresSkill?: string;
 }
 
 /** Shared upgrade tree for the raw extractors (forester/gatherer/quarry). */

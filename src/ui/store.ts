@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import type { BuildingTypeId, GridPos, ResourceId, ResourceMap } from "../engine/types";
+import { emptyStock } from "../engine/economy/resources";
 
 export interface UpgradeOption {
   id: string;
@@ -104,7 +105,7 @@ export interface GameStore {
 const noop = (): void => {};
 
 export const useGameStore = create<GameStore>(() => ({
-  stock: { wood: 0, stone: 0, food: 0, tools: 0 },
+  stock: emptyStock(),
   coins: 0,
   population: 0,
   capacity: 0,
