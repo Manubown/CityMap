@@ -73,6 +73,7 @@ export function BuildBar() {
   const completedTechs = useGameStore((s) => s.completedTechs);
   const unlockedSkills = useGameStore((s) => s.unlockedSkills);
   const techs = useGameStore((s) => s.techs);
+  const selected = useGameStore((s) => s.selected);
   const setBuildMode = useGameStore((s) => s.setBuildMode);
   const cancelBuild = useGameStore((s) => s.cancelBuild);
   const toggleClear = useGameStore((s) => s.toggleClear);
@@ -85,10 +86,11 @@ export function BuildBar() {
   const detailId = hovered ?? buildMode;
 
   return (
-    <div className="build-area">
-      {detailId && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
+    <>
+      {detailId && !selected && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
 
-      <div className="cat-tabs panel">
+      <div className="build-area">
+        <div className="cat-tabs panel">
         {CATEGORY_ORDER.map((c) => (
           <button
             key={c}
@@ -146,7 +148,8 @@ export function BuildBar() {
             </button>
           );
         })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
