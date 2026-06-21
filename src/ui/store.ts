@@ -6,7 +6,14 @@
  */
 
 import { create } from "zustand";
-import type { BiomeId, BuildingTypeId, GridPos, ResourceId, ResourceMap } from "../engine/types";
+import type {
+  BiomeId,
+  BuildingTypeId,
+  GridPos,
+  RegionKind,
+  ResourceId,
+  ResourceMap,
+} from "../engine/types";
 import { emptyStock } from "../engine/economy/resources";
 
 export interface UpgradeOption {
@@ -56,6 +63,8 @@ export interface RegionInfo {
   population: number;
   active: boolean;
   biome: BiomeId;
+  kind: RegionKind;
+  discovered: boolean;
 }
 
 export interface RouteInfo {

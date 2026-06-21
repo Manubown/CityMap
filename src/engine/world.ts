@@ -8,22 +8,23 @@
  */
 
 import type {
-  BiomeId,
   BuildingTypeId,
   BuildingInstance,
   GameState,
   GridPos,
   Region,
-  RegionKind,
   ResearchState,
   ResourceId,
   TerrainType,
-  WorldCoord,
 } from "./types";
 import { getBuildingDef, type BuildingDef } from "./buildings/registry";
 import { generateMap, tileAt } from "./map/generate";
 import { canAfford, emptyStock, spend, startingStock } from "./economy/resources";
 import { START_POPULATION } from "./systems/population";
+import { createRng } from "./rng";
+import { coordKey, hashCoord, neighbours } from "./world/coords";
+import { worldLayout, type RegionDescriptor } from "./world/worldgen";
+import { makeNpcState } from "./npc/archetypes";
 
 export const STATE_VERSION = 5;
 
@@ -209,46 +210,51 @@ function foundTownCenter(region: Region): void {
   region.population = START_POPULATION;
 }
 
-interface RegionOpts {
-  claimed: boolean;
-  claimCost: number;
-  worldPos: WorldCoord;
-  kind: RegionKind;
-  biome: BiomeId;
-}
-
-function createRegion(id: string, name: string, seed: number, o: RegionOpts): Region {
+function buildRegion(d: RegionDescriptor, worldSeed: number): Region {
+  const mapSeed = (worldSeed ^ hashCoord(d.worldPos)) >>> 0;
   const region: Region = {
-    id,
-    name,
-    map: generateMap(seed, o.biome),
+    id: d.id,
+    name: d.name,
+    map: generateMap(mapSeed, d.biome),
     buildings: {},
-    stock: o.claimed ? startingStock() : emptyStock(),
+    stock: d.kind === "player" ? startingStock() : emptyStock(),
     population: 0,
-    claimed: o.claimed,
-    claimCost: o.claimCost,
-    worldPos: o.worldPos,
-    kind: o.kind,
-    biome: o.biome,
-    discovered: o.claimed,
-    mapSeed: seed,
+    claimed: d.kind === "player",
+    claimCost: d.claimCost,
+    worldPos: d.worldPos,
+    kind: d.kind,
+    biome: d.biome,
+    discovered: d.discovered,
+    mapSeed,
     agents: [],
     agentSeq: 0,
     dayTick: 0,
+    npc:
+      d.kind === "npc"
+        ? makeNpcState(d.biome, createRng((mapSeed ^ 0x9e3779b9) >>> 0))
+        : undefined,
   };
-  if (o.claimed) foundTownCenter(region);
+  if (d.kind === "player") foundTownCenter(region);
   return region;
 }
 
-/** Claim an abandoned region: pay coins, grant starting goods + a Town Center. */
+/** Reveal a region's neighbours on the world map (fog of war). */
+function revealNeighbours(state: GameState, region: Region): void {
+  const ns = new Set(neighbours(region.worldPos).map(coordKey));
+  for (const r of state.regions) if (ns.has(coordKey(r.worldPos))) r.discovered = true;
+}
+
+/** Claim a site: pay coins, found a Town Center + starting goods, reveal neighbours. */
 export function claimRegion(state: GameState, regionId: string): boolean {
   const region = getRegion(state, regionId);
-  if (!region || region.claimed) return false;
+  if (!region || region.claimed || region.kind === "npc") return false;
   if (state.coins < region.claimCost) return false;
   state.coins -= region.claimCost;
   region.claimed = true;
+  region.kind = "player";
   region.stock = startingStock();
   foundTownCenter(region);
+  revealNeighbours(state, region);
   return true;
 }
 
@@ -256,27 +262,14 @@ function freshResearch(): ResearchState {
   return { age: 1, points: 0, completed: [], active: null };
 }
 
-/** Build a fresh game: a claimed homeland + an abandoned village to expand into. */
+/** Build a fresh game: the Homeland at the world centre + a ring of sites/NPCs. */
 export function createGame(seed: number): GameState {
-  const homeland = createRegion("r1", "Homeland", seed, {
-    claimed: true,
-    claimCost: 0,
-    worldPos: { q: 0, r: 0 },
-    kind: "player",
-    biome: "plains",
-  });
-  const village = createRegion("r2", "Abandoned Village", seed + 1337, {
-    claimed: false,
-    claimCost: 80,
-    worldPos: { q: 1, r: 0 },
-    kind: "site",
-    biome: "forest",
-  });
+  const regions = worldLayout().map((d) => buildRegion(d, seed));
   return {
     version: STATE_VERSION,
     tick: 0,
     coins: 30,
-    regions: [homeland, village],
+    regions,
     activeRegionId: "r1",
     routes: [],
     worldSeed: seed,

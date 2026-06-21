@@ -314,6 +314,8 @@ export class GameController {
       population: Math.floor(r.population),
       active: r.id === this.state.activeRegionId,
       biome: r.biome,
+      kind: r.kind,
+      discovered: r.discovered,
     }));
     const routes = this.state.routes.map((rt) => ({
       id: rt.id,

@@ -6,11 +6,14 @@ export function RegionTabs() {
   const claimRegion = useGameStore((s) => s.claimRegion);
   const coins = useGameStore((s) => s.coins);
 
-  if (regions.length <= 1) return null;
+  // Claimed colonies (switch) + discovered claimable sites (claim). NPC
+  // settlements are surfaced on the strategic map (M4).
+  const tabs = regions.filter((r) => r.discovered && (r.claimed || r.kind === "site"));
+  if (tabs.length <= 1) return null;
 
   return (
     <div className="region-tabs panel">
-      {regions.map((r) =>
+      {tabs.map((r) =>
         r.claimed ? (
           <button
             key={r.id}

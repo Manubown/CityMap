@@ -11,6 +11,7 @@ import type { GameState } from "./types";
 import { stepProduction } from "./systems/production";
 import { stepPopulation } from "./systems/population";
 import { stepResearch } from "./systems/research";
+import { stepNpcEconomy } from "./systems/npcEconomy";
 import { stepRoutes } from "./systems/routes";
 
 export const TICK_RATE = 4; // simulation ticks per second
@@ -32,6 +33,7 @@ export function stepGame(state: GameState): void {
   }
   stepResearch(state);
   // [M5] stepSkillPoints(state) inserts here.
+  stepNpcEconomy(state);
   stepRoutes(state);
 }
 
