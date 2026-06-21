@@ -197,7 +197,7 @@ function createRegion(id: string, name: string, seed: number, o: RegionOpts): Re
   const region: Region = {
     id,
     name,
-    map: generateMap(seed),
+    map: generateMap(seed, o.biome),
     buildings: {},
     stock: o.claimed ? startingStock() : emptyStock(),
     population: 0,

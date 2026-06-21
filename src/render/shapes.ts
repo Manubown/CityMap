@@ -85,6 +85,43 @@ export function drawPolyTile(
   else if (terrain === "water") drawWaterAccent(g, cx, cy, col, row);
   else if (terrain === "grass") drawGrassDecor(g, cx, cy, col, row);
   else if (terrain === "dirt") drawDirtDecor(g, cx, cy, col, row);
+  else if (terrain === "sand") drawSandDecor(g, cx, cy, col, row);
+  else if (terrain === "wetland") drawWetlandDecor(g, cx, cy, col, row);
+  else if (terrain === "deposit") drawDepositDecor(g, cx, cy, col, row);
+}
+
+function drawSandDecor(g: Graphics, cx: number, cy: number, col: number, row: number): void {
+  const hi = 0xeadcae;
+  g.ellipse(cx - 8, cy + 1, 12, 2).fill({ color: hi, alpha: 0.5 });
+  g.ellipse(cx + 6, cy + 6, 9, 1.6).fill({ color: hi, alpha: 0.4 });
+  if (hash(col, row, 4) > 0.7) g.circle(cx + 3, cy - 2, 1.6).fill({ color: 0xbfa878 });
+}
+
+function drawWetlandDecor(g: Graphics, cx: number, cy: number, col: number, row: number): void {
+  // shallow water glints
+  g.ellipse(cx + 6, cy + 4, 10, 2.4).fill({ color: 0x5f8fb0, alpha: 0.5 });
+  // reed tufts
+  const reed = 0x7faa54;
+  for (const [dx, dy] of [
+    [-10, 4],
+    [-4, -2],
+    [4, 6],
+  ] as const) {
+    if (hash(col + dx, row + dy, 6) < 0.6) continue;
+    g.rect(cx + dx, cy + dy - 9, 1.4, 9).fill({ color: reed });
+    g.rect(cx + dx + 3, cy + dy - 7, 1.4, 7).fill({ color: reed });
+  }
+}
+
+function drawDepositDecor(g: Graphics, cx: number, cy: number, col: number, row: number): void {
+  // rocky ground + ore specks suggesting a mineable vein
+  const d = 0x6f6256;
+  g.poly([cx - 14, cy + 3, cx - 6, cy - 6, cx + 2, cy, cx - 4, cy + 7]).fill({ color: d });
+  g.poly([cx + 5, cy + 5, cx + 13, cy - 1, cx + 18, cy + 5, cx + 10, cy + 9]).fill({ color: d });
+  const ore = hash(col, row, 7) > 0.5 ? 0xc88a4a : 0xb9c2cc; // copper-ish vs tin-ish glint
+  g.circle(cx - 7, cy - 1, 2).fill({ color: ore });
+  g.circle(cx + 11, cy + 3, 1.8).fill({ color: ore });
+  g.circle(cx + 1, cy + 5, 1.5).fill({ color: ore });
 }
 
 function drawForestAccent(g: Graphics, cx: number, cy: number, v: number): void {

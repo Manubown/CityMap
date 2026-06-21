@@ -74,6 +74,8 @@ export interface Tile {
   terrain: TerrainType;
   /** Id of the building occupying this tile, or null if empty. */
   buildingId: string | null;
+  /** Buried resource on a `deposit` tile (copper/tin/ore), if any. */
+  deposit?: ResourceId;
 }
 
 /** The playfield: a row-major grid of tiles. */
