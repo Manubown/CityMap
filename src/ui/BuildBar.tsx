@@ -9,6 +9,7 @@ import {
 import type { BuildingDef } from "../engine/buildings/registry";
 import { canAfford } from "../engine/economy/resources";
 import { resourceMapString } from "./format";
+import { useIsMobile } from "./MobileNav";
 import type { BuildingCategory, BuildingTypeId } from "../engine/types";
 
 const CATEGORY_LABEL: Record<BuildingCategory, string> = {
@@ -80,6 +81,17 @@ export function BuildBar() {
   const [cat, setCat] = useState<BuildingCategory>("food");
   const [hovered, setHovered] = useState<BuildingTypeId | null>(null);
   const [search, setSearch] = useState("");
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const pick = (id: BuildingTypeId, active: boolean) => {
+    if (active) {
+      cancelBuild();
+    } else {
+      setBuildMode(id);
+      if (isMobile) setSheetOpen(false); // close the sheet so you can place
+    }
+  };
 
   const activeBiome = regions.find((r) => r.active)?.biome;
   const techName = (id: string) => techs.find((t) => t.id === id)?.name ?? id;
@@ -89,11 +101,29 @@ export function BuildBar() {
     : BUILDABLE_ORDER.filter((id) => BUILDING_CATEGORY[id] === cat);
   const detailId = hovered ?? buildMode;
 
+  // Mobile: collapse the whole bar behind a single Build button so it doesn't
+  // sit on top of the selection / detail card. Tapping it pulls up a sheet.
+  if (isMobile && !sheetOpen) {
+    return (
+      <>
+        {detailId && !selected && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
+        <button className="mobile-build-btn panel" onClick={() => setSheetOpen(true)}>
+          🔨 Build
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       {detailId && !selected && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
 
-      <div className="build-area">
+      <div className={`build-area${isMobile ? " sheet" : ""}`}>
+        {isMobile && (
+          <button className="sheet-close" onClick={() => setSheetOpen(false)}>
+            ✕ Close
+          </button>
+        )}
         <div className="cat-tabs panel">
         {CATEGORY_ORDER.map((c) => (
           <button
@@ -147,7 +177,7 @@ export function BuildBar() {
               disabled={locked}
               onMouseEnter={() => setHovered(id)}
               onMouseLeave={() => setHovered((h) => (h === id ? null : h))}
-              onClick={() => (active ? cancelBuild() : setBuildMode(id))}
+              onClick={() => pick(id, active)}
             >
               <img
                 className="swatch-img"

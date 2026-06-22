@@ -12,8 +12,10 @@ import { InstructionCard } from "./InstructionCard";
 import { ClockPanel } from "./ClockPanel";
 import { SettingsModal, SpeedControls } from "./SettingsModal";
 import { Minimap } from "./Minimap";
+import { MobileNav, useIsMobile } from "./MobileNav";
 
 export function Hud() {
+  const isMobile = useIsMobile();
   const buildingCount = useGameStore((s) => s.buildingCount);
   const buildMode = useGameStore((s) => s.buildMode);
   const clearMode = useGameStore((s) => s.clearMode);
@@ -34,26 +36,30 @@ export function Hud() {
   return (
     <div className="hud">
       <ResourceBar />
-      <ClockPanel />
+      {!isMobile && <ClockPanel />}
       <RegionTabs />
       <div className="left-stack">
         <ResearchPanel />
         <RoutesPanel />
       </div>
 
-      <div className="controls panel">
-        <span className="stat">🏚 {buildingCount}</span>
-        <button onClick={() => setView("strategic")}>🗺 World</button>
-        <button onClick={() => setView("stats")}>📊 Stats</button>
-        <button onClick={() => setView("skills")}>🌟 Skills</button>
-        <SpeedControls />
-        <button onClick={save} title="Quick save">
-          💾
-        </button>
-        <button onClick={toggleMenu} title="Menu">
-          ⚙️
-        </button>
-      </div>
+      {isMobile ? (
+        <MobileNav />
+      ) : (
+        <div className="controls panel">
+          <span className="stat">🏚 {buildingCount}</span>
+          <button onClick={() => setView("strategic")}>🗺 World</button>
+          <button onClick={() => setView("stats")}>📊 Stats</button>
+          <button onClick={() => setView("skills")}>🌟 Skills</button>
+          <SpeedControls />
+          <button onClick={save} title="Quick save">
+            💾
+          </button>
+          <button onClick={toggleMenu} title="Menu">
+            ⚙️
+          </button>
+        </div>
+      )}
 
       <Minimap />
       <SelectionPanel />
