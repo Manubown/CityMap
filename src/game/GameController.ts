@@ -24,9 +24,26 @@ import {
 } from "../engine/world";
 import { getBuildingDef } from "../engine/buildings/registry";
 import { clearSave, loadGame, saveGame, type SaveSlot } from "../engine/save/persistence";
-import { housingCapacity, capacityOf, tierOf } from "../engine/systems/population";
+import {
+  housingCapacity,
+  capacityOf,
+  tierOf,
+  hasService,
+  TIERS,
+} from "../engine/systems/population";
+import type { ServiceType } from "../engine/types";
+
+const SERVICE_LABELS: Record<ServiceType, string> = {
+  water: "💧 Well",
+  leisure: "🍺 Tavern",
+  market: "🏪 Market Square",
+};
 import { laborDemand } from "../engine/systems/production";
-import { addRoute as engineAddRoute, removeRoute as engineRemoveRoute } from "../engine/systems/routes";
+import {
+  addRoute as engineAddRoute,
+  removeRoute as engineRemoveRoute,
+  routeMultiplier,
+} from "../engine/systems/routes";
 import { availableUpgrades, canUnlock, unlockUpgrade } from "../engine/buildings/upgrades";
 import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade";
 import { npcBuy, npcSell } from "../engine/npc/trade";
@@ -488,6 +505,14 @@ export class GameController {
       capacity: isResidence ? Math.round(capacityOf(b)) : undefined,
       tierName: isResidence ? tierOf(b).name : undefined,
       needsKeys: isResidence ? (Object.keys(tierOf(b).needs) as ResourceId[]) : undefined,
+      nextTierName: isResidence ? TIERS[b.tier]?.name : undefined,
+      nextServices:
+        isResidence && TIERS[b.tier]
+          ? (TIERS[b.tier].services ?? []).map((s) => ({
+              label: SERVICE_LABELS[s],
+              met: hasService(this.region, s),
+            }))
+          : undefined,
       ownedUpgrades: (def.upgrades ?? [])
         .filter((n) => b.upgrades.includes(n.id))
         .map((n) => n.name),
@@ -518,15 +543,21 @@ export class GameController {
       worldPos: r.worldPos,
       npc: r.npc ? { reputation: r.npc.reputation, prices: r.npc.prices } : undefined,
     }));
-    const routes = this.state.routes.map((rt) => ({
-      id: rt.id,
-      fromRegion: rt.fromRegion,
-      toRegion: rt.toRegion,
-      fromName: getRegion(this.state, rt.fromRegion)?.name ?? rt.fromRegion,
-      toName: getRegion(this.state, rt.toRegion)?.name ?? rt.toRegion,
-      resource: rt.resource,
-      rate: rt.rate,
-    }));
+    const routes = this.state.routes.map((rt) => {
+      const rf = getRegion(this.state, rt.fromRegion);
+      const rtt = getRegion(this.state, rt.toRegion);
+      const mult = rf && rtt ? routeMultiplier(rf, rtt) : 1;
+      return {
+        id: rt.id,
+        fromRegion: rt.fromRegion,
+        toRegion: rt.toRegion,
+        fromName: rf?.name ?? rt.fromRegion,
+        toName: rtt?.name ?? rt.toRegion,
+        resource: rt.resource,
+        rate: rt.rate,
+        effectiveRate: rt.rate * mult,
+      };
+    });
 
     const techs = TECHS.map((t) => ({
       id: t.id,

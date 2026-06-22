@@ -21,12 +21,17 @@ export function routeCapacity(region: Region): number {
   return cap;
 }
 
+/** A route's throughput multiplier — a Wagon Yard at either end counts. */
+export function routeMultiplier(from: Region, to: Region): number {
+  return Math.max(routeCapacity(from), routeCapacity(to));
+}
+
 export function stepRoutes(state: GameState): void {
   for (const route of state.routes) {
     const from = getRegion(state, route.fromRegion);
     const to = getRegion(state, route.toRegion);
     if (!from || !to || !from.claimed || !to.claimed) continue;
-    const amount = Math.min(route.rate * routeCapacity(from), from.stock[route.resource]);
+    const amount = Math.min(route.rate * routeMultiplier(from, to), from.stock[route.resource]);
     if (amount <= 0) continue;
     from.stock[route.resource] -= amount;
     to.stock[route.resource] += amount;

@@ -55,6 +55,8 @@ export interface SelectedInfo {
   capacity?: number;
   tierName?: string;
   needsKeys?: ResourceId[];
+  nextTierName?: string;
+  nextServices?: { label: string; met: boolean }[];
   // skill tree
   ownedUpgrades: string[];
   upgradeOptions: UpgradeOption[];
@@ -108,6 +110,8 @@ export interface RouteInfo {
   toName: string;
   resource: ResourceId;
   rate: number;
+  /** Actual per-tick throughput incl. Wagon Yard boost (>= rate). */
+  effectiveRate: number;
 }
 
 export interface ContractInfo {

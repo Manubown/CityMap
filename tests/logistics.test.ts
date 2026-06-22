@@ -19,7 +19,7 @@ describe("wagon yard / route capacity", () => {
     expect(routeCapacity(r)).toBe(1);
     const spot = findSpot(r, "wagon_yard");
     expect(placeBuilding(r, "wagon_yard", spot.col, spot.row)).not.toBeNull();
-    expect(routeCapacity(r)).toBeCloseTo(1.5); // +0.5 boost
+    expect(routeCapacity(r)).toBeCloseTo(2); // +1.0 boost (doubles throughput)
   });
 
   it("routes carry more goods with a Wagon Yard", () => {

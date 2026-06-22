@@ -429,6 +429,42 @@ button:hover {
   color: var(--danger);
 }
 
+.sp-grow {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+
+.sp-grow-head {
+  color: var(--muted);
+}
+
+.sp-services {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.svc {
+  font-size: 12px;
+}
+
+.svc.ok {
+  color: var(--accent);
+}
+
+.svc.miss {
+  color: var(--danger);
+}
+
+.sp-grow-note {
+  color: var(--muted);
+  display: block;
+  margin-top: 4px;
+}
+
 .danger {
   margin-top: 14px;
   width: 100%;

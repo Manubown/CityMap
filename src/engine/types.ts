@@ -53,7 +53,16 @@ export type ResourceId =
   | "iron_tools";
 
 /** Build-menu category, for grouping buildings as the roster grows. */
-export type BuildingCategory = "housing" | "food" | "extraction" | "crafting" | "logistics";
+export type BuildingCategory =
+  | "housing"
+  | "services"
+  | "food"
+  | "extraction"
+  | "crafting"
+  | "logistics";
+
+/** A public service a building provides to nearby homes (gates tier growth). */
+export type ServiceType = "water" | "leisure" | "market";
 
 /** Region role on the world map. */
 export type RegionKind = "player" | "npc" | "site";
@@ -88,6 +97,10 @@ export type BuildingTypeId =
   // iron chain (Iron Age)
   | "bloomery"
   | "blacksmith"
+  // services
+  | "well"
+  | "tavern"
+  | "market_square"
   // civic
   | "builder_hut"
   | "wagon_yard";

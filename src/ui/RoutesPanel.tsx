@@ -38,7 +38,8 @@ export function RoutesPanel() {
             <div className="route-row" key={rt.id}>
               <span className="route-text">
                 {rt.fromName} → {rt.toName}: {RESOURCES[rt.resource].glyph}{" "}
-                {Math.round(rt.rate * TICK_RATE * 10) / 10}/s
+                {Math.round(rt.effectiveRate * TICK_RATE * 10) / 10}/s
+                {rt.effectiveRate > rt.rate * 1.01 && " ⚡"}
               </span>
               <button className="route-del" onClick={() => removeRoute(rt.id)} title="Remove">
                 ✕

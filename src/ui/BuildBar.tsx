@@ -14,6 +14,7 @@ import type { BuildingCategory, BuildingTypeId } from "../engine/types";
 
 const CATEGORY_LABEL: Record<BuildingCategory, string> = {
   housing: "Homes",
+  services: "Services",
   food: "Food",
   extraction: "Resources",
   crafting: "Crafting",

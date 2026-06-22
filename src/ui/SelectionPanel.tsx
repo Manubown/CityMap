@@ -86,6 +86,22 @@ export function SelectionPanel() {
               <b>{selected.needsKeys.map((k) => `${RESOURCES[k].glyph} ${RESOURCES[k].name}`).join(", ")}</b>
             </div>
           )}
+          {selected.nextTierName && (
+            <div className="sp-grow">
+              <span className="sp-grow-head">To grow into {selected.nextTierName}:</span>
+              {selected.nextServices && selected.nextServices.length > 0 ? (
+                <div className="sp-services">
+                  {selected.nextServices.map((s) => (
+                    <span key={s.label} className={`svc${s.met ? " ok" : " miss"}`}>
+                      {s.met ? "✓" : "✗"} {s.label}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="sp-grow-note">keep them fed &amp; supplied</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 

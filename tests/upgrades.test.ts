@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createGame, placeBuilding } from "../src/engine/world";
+import { createGame, placeBuilding, canPlace } from "../src/engine/world";
+import type { BuildingTypeId } from "../src/engine/types";
 import { stepGame } from "../src/engine/tick";
 import { tileAt } from "../src/engine/map/generate";
 import { unlockUpgrade } from "../src/engine/buildings/upgrades";
@@ -48,6 +49,20 @@ describe("residential tiers", () => {
     r.stock.food = 100000;
     r.stock.tools = 100000;
     r.stock.stone = 100000;
+    // higher tiers now need public services in the city
+    const place = (type: BuildingTypeId) => {
+      for (let row = 0; row < r.map.height; row++) {
+        for (let col = 0; col < r.map.width; col++) {
+          if (canPlace(r, type, col, row, { free: true }).ok) {
+            placeBuilding(r, type, col, row, { free: true });
+            return;
+          }
+        }
+      }
+    };
+    place("well");
+    place("tavern");
+
     const tc = townCenter(r);
     expect(tc.tier).toBe(1);
     const capBefore = capacityOf(tc);
@@ -56,6 +71,17 @@ describe("residential tiers", () => {
 
     expect(tc.tier).toBeGreaterThan(1);
     expect(capacityOf(tc)).toBeGreaterThan(capBefore);
+  });
+
+  it("a residence won't climb past Settlers without the required services", () => {
+    const state = createGame(SEED);
+    const r = state.regions[0];
+    r.stock.food = 100000;
+    r.stock.tools = 100000;
+    r.stock.stone = 100000;
+    const tc = townCenter(r); // no Well built
+    for (let i = 0; i < 3000; i++) stepGame(state);
+    expect(tc.tier).toBe(1);
   });
 });
 

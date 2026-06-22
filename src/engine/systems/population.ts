@@ -10,7 +10,7 @@
  * RETURNS the coins earned this tick — the caller adds it to the global treasury.
  */
 
-import type { Region, BuildingInstance, ResourceId, ResourceMap } from "../types";
+import type { Region, BuildingInstance, ResourceId, ResourceMap, ServiceType } from "../types";
 import { getBuildingDef } from "../buildings/registry";
 import { aggregateEffects } from "../buildings/upgrades";
 import { consumeFood, totalFood } from "../economy/resources";
@@ -27,17 +27,27 @@ export interface TierDef {
   capacityMult: number;
   tax: number;
   needs: ResourceMap;
+  /** Public services the city must provide for this tier to thrive. */
+  services?: ServiceType[];
 }
 
 export const TIERS: TierDef[] = [
   { id: 1, name: "Settlers", capacityMult: 1.0, tax: 0.02, needs: { food: 0.012 } },
-  { id: 2, name: "Villagers", capacityMult: 1.6, tax: 0.035, needs: { food: 0.012, tools: 0.004 } },
+  {
+    id: 2,
+    name: "Villagers",
+    capacityMult: 1.6,
+    tax: 0.035,
+    needs: { food: 0.012, tools: 0.004 },
+    services: ["water"],
+  },
   {
     id: 3,
     name: "Citizens",
     capacityMult: 2.4,
     tax: 0.05,
     needs: { food: 0.013, tools: 0.005, stone: 0.003 },
+    services: ["water", "leisure"],
   },
   {
     id: 4,
@@ -45,8 +55,20 @@ export const TIERS: TierDef[] = [
     capacityMult: 3.2,
     tax: 0.075,
     needs: { food: 0.014, tools: 0.005, iron_tools: 0.004 },
+    services: ["water", "leisure", "market"],
   },
 ];
+
+/** Whether the region has a built building providing service `type`. */
+export function hasService(region: Region, type: ServiceType): boolean {
+  return Object.values(region.buildings).some(
+    (b) => b.built && getBuildingDef(b.type).service === type,
+  );
+}
+
+export function servicesMet(region: Region, tier: TierDef): boolean {
+  return (tier.services ?? []).every((s) => hasService(region, s));
+}
 
 export function tierOf(b: BuildingInstance): TierDef {
   return TIERS[Math.min(Math.max(b.tier - 1, 0), TIERS.length - 1)];
@@ -73,6 +95,7 @@ const comfortKeys = (tier: TierDef): ResourceId[] =>
 function nextTierFeasible(region: Region, b: BuildingInstance): boolean {
   const next = TIERS[b.tier];
   if (!next) return false;
+  if (!servicesMet(region, next)) return false; // needs the next tier's services
   return comfortKeys(next).every((r) => region.stock[r] >= UPGRADE_STASH);
 }
 
@@ -103,6 +126,8 @@ export function stepPopulation(
         if (region.stock[r] >= need) region.stock[r] -= need;
         else comfortMet = false;
       }
+      // higher tiers also need their public services maintained
+      if (comfortMet && !servicesMet(region, tier)) comfortMet = false;
 
       if (comfortMet) {
         if (b.residents < cap) {

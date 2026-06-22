@@ -10,6 +10,7 @@ import type {
   BuildingTypeId,
   ResourceId,
   ResourceMap,
+  ServiceType,
   TerrainType,
 } from "../types";
 import type { UpgradeNode } from "./upgrades";
@@ -56,6 +57,8 @@ export interface BuildingDef {
   buildCapacity?: number;
   /** Trade-route throughput this building adds to its region (Wagon Yard). */
   routeBoost?: number;
+  /** Public service this building provides to the city (gates tier growth). */
+  service?: ServiceType;
   /** Reuse another building's sprite + manifest entry (e.g. market -> storage). */
   spriteAlias?: BuildingTypeId;
   /** Selecting this building opens the trade panel. */
@@ -492,6 +495,42 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
     housing: 4,
     upgrades: HUT_TREE,
   },
+  well: {
+    id: "well",
+    name: "Well",
+    description: "Clean water. Homes need it to grow past Settlers.",
+    age: 1,
+    footprint: { w: 1, h: 1 },
+    cost: { wood: 10, stone: 15 },
+    buildableOn: GROUND,
+    color: 0x6fa8c9,
+    spriteAlias: "storage",
+    service: "water",
+  },
+  tavern: {
+    id: "tavern",
+    name: "Tavern",
+    description: "Food, drink and company. Homes need it to grow into Citizens.",
+    age: 1,
+    footprint: { w: 2, h: 1 },
+    cost: { wood: 30, stone: 10 },
+    buildableOn: GROUND,
+    color: 0xc08a3e,
+    spriteAlias: "storage",
+    service: "leisure",
+  },
+  market_square: {
+    id: "market_square",
+    name: "Market Square",
+    description: "Access to goods. Homes need it to grow into Townsfolk.",
+    age: 1,
+    footprint: { w: 2, h: 1 },
+    cost: { wood: 25, stone: 25 },
+    buildableOn: GROUND,
+    color: 0xd9a441,
+    spriteAlias: "storage",
+    service: "market",
+  },
   builder_hut: {
     id: "builder_hut",
     name: "Builder's Hut",
@@ -515,7 +554,7 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
     buildableOn: GROUND,
     color: 0x9c6f3e,
     spriteAlias: "storage",
-    routeBoost: 0.5,
+    routeBoost: 1,
     upgrades: WAGON_TREE,
   },
 };
@@ -523,6 +562,9 @@ export const BUILDINGS: Record<BuildingTypeId, BuildingDef> = {
 /** Buildings shown in the build bar, in order. Town Center is auto-placed. */
 export const BUILDABLE_ORDER: BuildingTypeId[] = [
   "hut",
+  "well",
+  "tavern",
+  "market_square",
   "gatherer",
   "farm",
   "hunter",
@@ -548,6 +590,9 @@ export const BUILDABLE_ORDER: BuildingTypeId[] = [
 export const BUILDING_CATEGORY: Record<BuildingTypeId, BuildingCategory> = {
   town_center: "housing",
   hut: "housing",
+  well: "services",
+  tavern: "services",
+  market_square: "services",
   gatherer: "food",
   farm: "food",
   hunter: "food",
@@ -574,6 +619,7 @@ export const DEFAULT_BUILD_TICKS = 28;
 
 export const CATEGORY_ORDER: BuildingCategory[] = [
   "housing",
+  "services",
   "food",
   "extraction",
   "crafting",
