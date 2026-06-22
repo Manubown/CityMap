@@ -1,12 +1,14 @@
 /**
- * World layout: a small radius-1 world — your Homeland at the centre plus a
- * ring of claimable SITES (varied biomes to expand into) and NPC settlements to
- * trade with. (Larger radii + fog-of-war reveal are a follow-up.)
+ * World layout: a radius-2 hex world — your Homeland at the centre, an inner ring
+ * of claimable SITES + NPC settlements (visible from the start), and an outer
+ * ring hidden by fog of war until you claim or scout your way out to it.
  */
 
 import type { BiomeId, RegionKind, WorldCoord } from "../types";
-import { withinRadius } from "./coords";
+import { withinRadius, hexDistance } from "./coords";
 import { archetypeFor } from "../npc/archetypes";
+
+export const WORLD_RADIUS = 2;
 
 export interface RegionDescriptor {
   id: string;
@@ -18,7 +20,7 @@ export interface RegionDescriptor {
   discovered: boolean;
 }
 
-const RING_BIOMES: BiomeId[] = ["forest", "mountains", "wetland", "desert", "coast", "plains"];
+const BIOMES: BiomeId[] = ["forest", "mountains", "wetland", "desert", "coast", "plains"];
 const SITE_NAMES: Record<BiomeId, string> = {
   plains: "Green Meadow",
   forest: "Old Forest",
@@ -27,9 +29,17 @@ const SITE_NAMES: Record<BiomeId, string> = {
   desert: "Dunelands",
   coast: "Bluewater Cove",
 };
+const ROMAN = ["", " II", " III", " IV", " V", " VI"];
 
 export function worldLayout(): RegionDescriptor[] {
-  const coords = withinRadius(1); // centre + 6 neighbours
+  const coords = withinRadius(WORLD_RADIUS); // centre first, then by ring
+  const used = new Map<string, number>();
+  const unique = (base: string): string => {
+    const n = used.get(base) ?? 0;
+    used.set(base, n + 1);
+    return base + (ROMAN[n] ?? ` ${n + 1}`);
+  };
+
   return coords.map((c, i): RegionDescriptor => {
     if (i === 0) {
       return {
@@ -42,17 +52,18 @@ export function worldLayout(): RegionDescriptor[] {
         discovered: true,
       };
     }
-    const ringIndex = i - 1; // 0..5
-    const biome = RING_BIOMES[ringIndex];
-    const isSite = ringIndex < 3; // first 3 are claimable sites, rest are NPCs
+    const dist = hexDistance({ q: 0, r: 0 }, c);
+    const biome = BIOMES[(i - 1) % BIOMES.length];
+    const isSite = i % 2 === 1; // alternate site / npc
     return {
       id: `r${i + 1}`,
-      name: isSite ? SITE_NAMES[biome] : archetypeFor(biome).name,
+      name: unique(isSite ? SITE_NAMES[biome] : archetypeFor(biome).name),
       worldPos: c,
       kind: isSite ? "site" : "npc",
       biome,
-      claimCost: 70 + ringIndex * 40,
-      discovered: true,
+      // costlier the further out; fogged beyond the first ring
+      claimCost: Math.round(60 + dist * 70 + ((i - 1) % 3) * 20),
+      discovered: dist <= 1,
     };
   });
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createGame, claimRegion } from "../src/engine/world";
+import { createGame, claimRegion, canScout, scoutRegion } from "../src/engine/world";
 import { stepGame } from "../src/engine/tick";
 import { npcBuy, npcSell } from "../src/engine/npc/trade";
 import { RESOURCES } from "../src/engine/economy/resources";
@@ -9,14 +9,28 @@ const SEED = 42;
 const IDS = Object.keys(RESOURCES) as ResourceId[];
 
 describe("M3 world", () => {
-  it("generates a centre Homeland + a ring of sites and NPCs", () => {
+  it("generates a radius-2 world (centre + sites + NPCs) with fog of war", () => {
     const state = createGame(SEED);
-    expect(state.regions.length).toBe(7); // centre + 6
+    expect(state.regions.length).toBe(19); // centre + 2 rings
     expect(state.regions.filter((r) => r.kind === "player").length).toBe(1);
-    expect(state.regions.filter((r) => r.kind === "site").length).toBe(3);
-    expect(state.regions.filter((r) => r.kind === "npc").length).toBe(3);
+    expect(state.regions.filter((r) => r.kind === "site").length).toBeGreaterThan(3);
+    expect(state.regions.filter((r) => r.kind === "npc").length).toBeGreaterThan(3);
     expect(state.regions[0].worldPos).toEqual({ q: 0, r: 0 });
-    expect(new Set(state.regions.map((r) => r.biome)).size).toBeGreaterThan(1);
+    expect(new Set(state.regions.map((r) => r.biome)).size).toBeGreaterThan(2);
+    // outer ring starts fogged
+    expect(state.regions.some((r) => !r.discovered)).toBe(true);
+    expect(state.regions.filter((r) => r.discovered).length).toBe(7); // centre + ring 1
+  });
+
+  it("scouting reveals fogged neighbours for coins", () => {
+    const state = createGame(SEED);
+    state.coins = 1000;
+    const before = state.regions.filter((r) => r.discovered).length;
+    const scoutable = state.regions.find((r) => r.discovered && canScout(state, r));
+    expect(scoutable).toBeDefined();
+    expect(scoutRegion(state, scoutable!.id)).toBe(true);
+    expect(state.regions.filter((r) => r.discovered).length).toBeGreaterThan(before);
+    expect(state.coins).toBe(975);
   });
 
   it("claiming a site makes it a player colony with a Town Center", () => {

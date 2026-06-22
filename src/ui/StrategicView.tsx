@@ -41,6 +41,7 @@ export function StrategicView() {
   const setView = useGameStore((s) => s.setView);
   const switchRegion = useGameStore((s) => s.switchRegion);
   const claimRegion = useGameStore((s) => s.claimRegion);
+  const scout = useGameStore((s) => s.scout);
   const npcTrade = useGameStore((s) => s.npcTrade);
   const setupDeal = useGameStore((s) => s.setupDeal);
   const cancelDeal = useGameStore((s) => s.cancelDeal);
@@ -116,6 +117,7 @@ export function StrategicView() {
               onTrade={npcTrade}
               onDeal={setupDeal}
               onCancelDeal={cancelDeal}
+              onScout={() => scout(sel.id)}
               canTrade={canTrade}
             />
           )}
@@ -134,6 +136,7 @@ function NodeDetail({
   onTrade,
   onDeal,
   onCancelDeal,
+  onScout,
   canTrade,
 }: {
   node: RegionInfo;
@@ -144,6 +147,7 @@ function NodeDetail({
   onTrade: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number) => void;
   onDeal: (npcId: string, res: ResourceId, dir: "buy" | "sell", qty: number, every: number) => void;
   onCancelDeal: (id: string) => void;
+  onScout: () => void;
   canTrade: boolean;
 }) {
   const [qty, setQty] = useState(10);
@@ -156,6 +160,12 @@ function NodeDetail({
         <span>Biome</span>
         <b>{node.biome}</b>
       </div>
+
+      {node.canScout && (
+        <button className="scout-btn" onClick={onScout}>
+          🔭 Scout from here · 🪙 25
+        </button>
+      )}
 
       {node.claimed && (
         <>

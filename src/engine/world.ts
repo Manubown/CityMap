@@ -28,8 +28,8 @@ import { makeNpcState } from "./npc/archetypes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
 // v6: world. v7: contracts. v8: construction. v9: Iron Age. v10: cloth + glass.
-// v11: quests. v12: living NPC markets (basePrices + population).
-export const STATE_VERSION = 12;
+// v11: quests. v12: living NPC markets. v13: bigger world (radius-2) + fog.
+export const STATE_VERSION = 13;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {
@@ -307,6 +307,24 @@ function buildRegion(d: RegionDescriptor, worldSeed: number): Region {
 function revealNeighbours(state: GameState, region: Region): void {
   const ns = new Set(neighbours(region.worldPos).map(coordKey));
   for (const r of state.regions) if (ns.has(coordKey(r.worldPos))) r.discovered = true;
+}
+
+export const SCOUT_COST = 25;
+
+/** Does this discovered node have any fogged neighbour left to scout? */
+export function canScout(state: GameState, region: Region): boolean {
+  if (!region.discovered) return false;
+  const ns = new Set(neighbours(region.worldPos).map(coordKey));
+  return state.regions.some((r) => ns.has(coordKey(r.worldPos)) && !r.discovered);
+}
+
+/** Scout from a discovered node: pay coins to reveal its fogged neighbours. */
+export function scoutRegion(state: GameState, regionId: string): boolean {
+  const region = getRegion(state, regionId);
+  if (!region || !canScout(state, region) || state.coins < SCOUT_COST) return false;
+  state.coins -= SCOUT_COST;
+  revealNeighbours(state, region);
+  return true;
 }
 
 /** Claim a site: pay coins, found a Town Center + starting goods, reveal neighbours. */

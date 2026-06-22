@@ -72,6 +72,7 @@ export interface RegionInfo {
   biome: BiomeId;
   kind: RegionKind;
   discovered: boolean;
+  canScout: boolean;
   worldPos: WorldCoord;
   /** Present for NPC settlements: reputation, size, and current prices. */
   npc?: {
@@ -216,6 +217,7 @@ export interface GameStore {
   research: (techId: string) => void;
   switchRegion: (id: string) => void;
   claimRegion: (id: string) => void;
+  scout: (id: string) => void;
   addRoute: (from: string, to: string, res: ResourceId, rate: number) => void;
   removeRoute: (id: string) => void;
   save: () => void;
@@ -290,6 +292,7 @@ export const useGameStore = create<GameStore>((set) => ({
   research: noop,
   switchRegion: noop,
   claimRegion: noop,
+  scout: noop,
   addRoute: noop,
   removeRoute: noop,
   save: noop,

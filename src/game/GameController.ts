@@ -22,6 +22,8 @@ import {
   placeBuilding,
   placeStarters,
   removeBuilding,
+  canScout,
+  scoutRegion,
 } from "../engine/world";
 import { getBuildingDef } from "../engine/buildings/registry";
 import { clearSave, loadGame, saveGame, type SaveSlot } from "../engine/save/persistence";
@@ -262,6 +264,7 @@ export class GameController {
       unlockSkill: (id) => this.unlockSkill(id),
       switchRegion: (id) => this.switchRegion(id),
       claimRegion: (id) => this.claim(id),
+      scout: (id) => this.scout(id),
       addRoute: (from, to, res, rate) => this.addRoute(from, to, res, rate),
       removeRoute: (id) => this.removeRoute(id),
       save: () => void saveGame(this.state).then(() => this.flashMessage("Game saved")),
@@ -436,6 +439,15 @@ export class GameController {
     }
   }
 
+  private scout(id: string): void {
+    if (scoutRegion(this.state, id)) {
+      this.pushSnapshot();
+      this.flashMessage("Scouts reveal new lands");
+    } else {
+      this.flashMessage("Can't scout from there");
+    }
+  }
+
   private addRoute(from: string, to: string, res: ResourceId, rate: number): void {
     const r = rate > 0 ? rate : ROUTE_RATE;
     if (engineAddRoute(this.state, from, to, res, r)) this.pushSnapshot();
@@ -548,6 +560,7 @@ export class GameController {
       biome: r.biome,
       kind: r.kind,
       discovered: r.discovered,
+      canScout: canScout(this.state, r),
       worldPos: r.worldPos,
       npc: r.npc
         ? { reputation: r.npc.reputation, population: r.npc.population, prices: r.npc.prices }
