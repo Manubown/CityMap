@@ -50,7 +50,10 @@ export type ResourceId =
   | "bronze_tools"
   // iron chain (Iron Age)
   | "iron"
-  | "iron_tools";
+  | "iron_tools"
+  // processed goods (Phase 2)
+  | "cloth"
+  | "glass";
 
 /** Build-menu category, for grouping buildings as the roster grows. */
 export type BuildingCategory =
@@ -97,6 +100,9 @@ export type BuildingTypeId =
   // iron chain (Iron Age)
   | "bloomery"
   | "blacksmith"
+  // processed goods (Phase 2)
+  | "weaver"
+  | "glassworks"
   // services
   | "well"
   | "tavern"

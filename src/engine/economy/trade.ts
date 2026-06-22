@@ -27,6 +27,8 @@ export const TRADE_PRICES: Record<ResourceId, TradePrice> = {
   bronze_tools: { buy: 22, sell: 12 },
   iron: { buy: 16, sell: 8 },
   iron_tools: { buy: 26, sell: 14 },
+  cloth: { buy: 12, sell: 7 },
+  glass: { buy: 15, sell: 9 },
 };
 
 export const TRADE_BATCH = 10;
