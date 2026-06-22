@@ -118,6 +118,10 @@ export interface Tile {
   buildingId: string | null;
   /** Buried resource on a `deposit` tile (copper/tin/ore), if any. */
   deposit?: ResourceId;
+  /** Foot traffic; once it crosses a threshold the tile becomes a road. */
+  wear?: number;
+  /** Worn-in road — villagers travel faster across it (Phase 4). */
+  road?: boolean;
 }
 
 /** The playfield: a row-major grid of tiles. */

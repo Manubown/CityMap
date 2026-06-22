@@ -1,61 +1,53 @@
 /**
- * Worn footpaths. A render-only trail system: tiles villagers stand on gain
- * "wear" each frame and slowly fade; tiles walked often enough show a trampled
- * dirt patch. Purely cosmetic — it never touches the sim or saves, so it can use
- * wall-clock accumulation freely.
+ * Paths & roads. Reads the sim's per-tile foot-traffic (Tile.wear) and worn-in
+ * roads (Tile.road) and draws them: a faint dirt trail while a track is forming,
+ * a solid road once villagers have worn it in. Read-only; redrawn a few times a
+ * second (roads change slowly).
  */
 
 import { Container, Graphics } from "pixi.js";
 import type { Region } from "../engine/types";
 import { TILE_W, TILE_H, gridToScreen } from "../engine/iso";
+import { tileAt } from "../engine/map/generate";
 
-const GAIN = 0.05; // wear added per frame an agent stands on a tile
-const DECAY = 0.012; // wear lost per frame
-const SHOW = 0.5; // wear at which a path becomes visible
-const HW = (TILE_W / 2) * 0.6;
-const HH = (TILE_H / 2) * 0.6;
+const HW = (TILE_W / 2) * 0.74;
+const HH = (TILE_H / 2) * 0.74;
+const ROAD_WEAR = 90;
 
 export class PathLayer {
   readonly container = new Container();
   private g = new Graphics();
-  private wear = new Map<number, number>();
+  private frame = 0;
 
   constructor() {
     this.container.label = "paths";
     this.container.addChild(this.g);
   }
 
+  private diamond(x: number, y: number, color: number, alpha: number): void {
+    this.g.poly([x, y - HH, x + HW, y, x, y + HH, x - HW, y]).fill({ color, alpha });
+  }
+
   update(region: Region | null): void {
+    if (this.frame++ % 8 !== 0) return; // roads change slowly — redraw ~8 fps
     this.g.clear();
     if (!region) return;
-    const W = region.map.width;
-
-    for (const a of region.agents) {
-      const k = a.row * W + a.col;
-      this.wear.set(k, Math.min(3, (this.wear.get(k) ?? 0) + GAIN));
-    }
-
-    for (const [k, v] of this.wear) {
-      const nv = v - DECAY;
-      if (nv <= 0.05) {
-        this.wear.delete(k);
-        continue;
+    const map = region.map;
+    for (let row = 0; row < map.height; row++) {
+      for (let col = 0; col < map.width; col++) {
+        const t = tileAt(map, col, row);
+        if (!t) continue;
+        const c = gridToScreen(col, row);
+        if (t.road) {
+          this.diamond(c.x, c.y, 0x6e5d44, 0.6);
+        } else if (t.wear && t.wear > 30) {
+          this.diamond(c.x, c.y, 0x8a7250, Math.min(0.4, (t.wear / ROAD_WEAR) * 0.4));
+        }
       }
-      this.wear.set(k, nv);
-      if (nv < SHOW) continue;
-      const col = k % W;
-      const row = Math.floor(k / W);
-      const c = gridToScreen(col, row);
-      const alpha = Math.min(0.5, (nv - SHOW) * 0.45);
-      this.g.poly([c.x, c.y - HH, c.x + HW, c.y, c.x, c.y + HH, c.x - HW, c.y]).fill({
-        color: 0x8a7250,
-        alpha,
-      });
     }
   }
 
   clear(): void {
-    this.wear.clear();
     this.g.clear();
   }
 }

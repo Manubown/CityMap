@@ -17,6 +17,8 @@ export const DAY_LENGTH = 240; // ticks per day-cycle (~60s at TICK_RATE 4)
 export const AGENT_CAP = 60; // villagers shown per region
 const MOVE_TICKS = 3; // sim ticks to cross one tile
 export const MOVE_STEP = 1 / MOVE_TICKS;
+const ROAD_WEAR = 90; // foot traffic before a tile becomes a road
+const ROAD_SPEED = 1.6; // travel-speed multiplier on a road
 
 function homesOf(region: Region): BuildingInstance[] {
   return Object.values(region.buildings).filter(
@@ -112,7 +114,8 @@ function advance(region: Region, a: Agent, workTime: boolean): void {
         ? doorTile(region, home)
         : null;
 
-  a.progress += MOVE_STEP;
+  const onRoad = tileAt(region.map, a.col, a.row)?.road;
+  a.progress += MOVE_STEP * (onRoad ? ROAD_SPEED : 1);
   if (a.progress < 1) return;
 
   a.col = a.ncol;
@@ -143,4 +146,13 @@ export function stepAgents(region: Region): void {
   const f = dayFraction(region.dayTick);
   const workTime = f > 0.28 && f < 0.8;
   for (const a of region.agents) advance(region, a, workTime);
+
+  // Foot traffic wears tracks into roads over time.
+  for (const a of region.agents) {
+    const t = tileAt(region.map, a.col, a.row);
+    if (!t || t.buildingId || (t.terrain !== "grass" && t.terrain !== "dirt")) continue;
+    const w = (t.wear ?? 0) + 1;
+    t.wear = w;
+    if (!t.road && w >= ROAD_WEAR) t.road = true;
+  }
 }
