@@ -284,4 +284,6 @@ export interface GameState {
   skillPointsAwarded: number;
   /** Unlocked skill-tree node ids (empire-wide, M5). */
   unlockedSkills: string[];
+  /** Completed objective quest ids (Phase 3). */
+  completedQuests: string[];
 }

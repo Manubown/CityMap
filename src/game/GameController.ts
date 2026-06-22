@@ -9,6 +9,7 @@
 import { GameRenderer } from "../render/PixiApp";
 import { SimClock, stepGame, TICK_RATE } from "../engine/tick";
 import { resourceFlows } from "../engine/stats";
+import { QUESTS, questRewardLabel } from "../engine/quests";
 import { RESOURCES } from "../engine/economy/resources";
 import {
   activeRegion,
@@ -88,6 +89,7 @@ export class GameController {
   private speed = 1;
   private minimapCanvas: HTMLCanvasElement | null = null;
   private minimapAccum = 0;
+  private lastQuestCount = 0;
   private pushAccum = 0;
   private autosaveAccum = 0;
   private messageTimer: ReturnType<typeof setTimeout> | null = null;
@@ -106,6 +108,7 @@ export class GameController {
       this.state = createGame(randomSeed());
       placeStarters(this.state.regions[0]); // new players start with a few buildings
     }
+    this.lastQuestCount = this.state.completedQuests.length;
     this.renderer.attachRegion(this.region);
 
     this.renderer.onClickTile = (tile, button) => this.onClickTile(tile, button);
@@ -131,6 +134,11 @@ export class GameController {
     this.clock.advance(dtMs * this.speed, () => stepGame(this.state));
     this.renderer.updateAgents(this.clock.fraction());
     this.renderer.setDayNight(this.state.tick);
+
+    if (this.state.completedQuests.length > this.lastQuestCount) {
+      this.lastQuestCount = this.state.completedQuests.length;
+      this.flashMessage("✓ Quest complete!");
+    }
 
     this.pushAccum += dtMs;
     if (this.pushAccum >= STORE_PUSH_MS) {
@@ -600,6 +608,16 @@ export class GameController {
       selected: this.buildSelectedInfo(),
       canTrade: this.hasMarket(region),
       flows: this.buildFlows(region),
+      quests: QUESTS.filter((q) => !this.state.completedQuests.includes(q.id))
+        .slice(0, 5)
+        .map((q) => ({
+          id: q.id,
+          title: q.title,
+          goal: q.goal,
+          reward: questRewardLabel(q.reward),
+          progress: q.progress ? q.progress(this.state) : 0,
+        })),
+      questsDone: this.state.completedQuests.length,
       regions,
       routes,
       contracts: this.state.contracts.map((c) => ({

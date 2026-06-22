@@ -102,6 +102,14 @@ export interface SkillNodeInfo {
   affordable: boolean;
 }
 
+export interface QuestInfo {
+  id: string;
+  title: string;
+  goal: string;
+  reward: string;
+  progress: number; // 0..1
+}
+
 export interface RouteInfo {
   id: string;
   fromRegion: string;
@@ -158,6 +166,8 @@ export interface GameStore {
   contracts: ContractInfo[];
   canTrade: boolean;
   flows: FlowInfo[];
+  quests: QuestInfo[];
+  questsDone: number;
   // time of day / calendar
   timeHour: number;
   timeMinute: number;
@@ -239,6 +249,8 @@ export const useGameStore = create<GameStore>((set) => ({
   contracts: [],
   canTrade: false,
   flows: [],
+  quests: [],
+  questsDone: 0,
   timeHour: 6,
   timeMinute: 0,
   dayNum: 1,

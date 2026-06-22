@@ -11,6 +11,8 @@ import type { GameState } from "./types";
 import { stepConstruction } from "./systems/construction";
 import { stepProduction } from "./systems/production";
 import { stepPopulation } from "./systems/population";
+import { stepCityGrowth } from "./systems/cityGrowth";
+import { stepQuests } from "./quests";
 import { stepResearch } from "./systems/research";
 import { stepSkillPoints } from "./systems/skillProgress";
 import { stepNpcEconomy } from "./systems/npcEconomy";
@@ -36,9 +38,11 @@ export function stepGame(state: GameState): void {
     stepConstruction(region); // finish build sites + queued upgrades first
     stepProduction(region, skill);
     state.coins += stepPopulation(region, skill); // taxes flow to the global treasury
+    stepCityGrowth(region); // a full city raises new homes on its own
     stepAgents(region); // cosmetic villagers — never touches the economy
   }
   stepResearch(state, skill);
+  stepQuests(state); // objective milestones + rewards
   stepSkillPoints(state);
   stepNpcEconomy(state);
   stepContracts(state);

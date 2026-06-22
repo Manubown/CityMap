@@ -5,6 +5,7 @@ import { SelectionPanel } from "./SelectionPanel";
 import { RegionTabs } from "./RegionTabs";
 import { RoutesPanel } from "./RoutesPanel";
 import { ResearchPanel } from "./ResearchPanel";
+import { QuestPanel } from "./QuestPanel";
 import { StrategicView } from "./StrategicView";
 import { SkillTreeView } from "./SkillTreeView";
 import { StatsView } from "./StatsView";
@@ -39,6 +40,7 @@ export function Hud() {
       {!isMobile && <ClockPanel />}
       <RegionTabs />
       <div className="left-stack">
+        <QuestPanel />
         <ResearchPanel />
         <RoutesPanel />
       </div>

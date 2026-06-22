@@ -1149,6 +1149,67 @@ button:hover {
   color: var(--muted);
 }
 
+/* --- quests panel --- */
+.quests {
+  width: 100%;
+  padding: 0;
+}
+
+.quests-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.quests-count {
+  margin-left: auto;
+  color: #9ee6b4;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.quests-head .routes-caret {
+  margin-left: 6px;
+}
+
+.quests-body {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quest-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quest-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.quest-goal {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.quest-reward {
+  font-size: 11px;
+  color: #e9c46a;
+}
+
+.quest-prog {
+  margin-top: 4px;
+  height: 5px;
+}
+
 /* --- trade routes panel --- */
 .routes {
   width: 100%;
