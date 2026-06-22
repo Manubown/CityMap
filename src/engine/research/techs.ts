@@ -39,9 +39,28 @@ export const TECHS: Tech[] = [
     requires: ["smelting"],
     unlocksAge: 2,
   },
+  {
+    id: "iron_working",
+    name: "Iron Working",
+    description: "Enter the Iron Age — smelt Ore into Iron at a Bloomery.",
+    cost: 200,
+    requires: ["bronze_working"],
+    unlocksAge: 3,
+  },
+  {
+    id: "blacksmithing",
+    name: "Blacksmithing",
+    description: "Forge Iron Tools — the goods Townsfolk demand.",
+    cost: 300,
+    requires: ["iron_working"],
+  },
 ];
 
-export const AGE_NAMES: Record<number, string> = { 1: "Stone Age", 2: "Bronze Age" };
+export const AGE_NAMES: Record<number, string> = {
+  1: "Stone Age",
+  2: "Bronze Age",
+  3: "Iron Age",
+};
 
 export function getTech(id: string): Tech | undefined {
   return TECHS.find((t) => t.id === id);

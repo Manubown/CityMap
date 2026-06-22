@@ -47,7 +47,10 @@ export type ResourceId =
   | "copper"
   | "tin"
   | "bronze"
-  | "bronze_tools";
+  | "bronze_tools"
+  // iron chain (Iron Age)
+  | "iron"
+  | "iron_tools";
 
 /** Build-menu category, for grouping buildings as the roster grows. */
 export type BuildingCategory = "housing" | "food" | "extraction" | "crafting" | "logistics";
@@ -82,6 +85,9 @@ export type BuildingTypeId =
   | "tin_mine"
   | "smelter"
   | "bronze_foundry"
+  // iron chain (Iron Age)
+  | "bloomery"
+  | "blacksmith"
   // civic
   | "builder_hut"
   | "wagon_yard";

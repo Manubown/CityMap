@@ -27,9 +27,9 @@ import { worldLayout, type RegionDescriptor } from "./world/worldgen";
 import { makeNpcState } from "./npc/archetypes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
-// v6: M3 reshaped the world. v7: trade contracts. v8: building construction
-// state (built/buildProgress). Mismatched saves are dropped (pre-release).
-export const STATE_VERSION = 8;
+// v6: M3 reshaped the world. v7: trade contracts. v8: building construction.
+// v9: Iron Age (iron/iron_tools goods). Mismatched saves are dropped.
+export const STATE_VERSION = 9;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {

@@ -30,6 +30,9 @@ export const RESOURCES: Record<ResourceId, ResourceDef> = {
   tin: { id: "tin", name: "Tin", glyph: "⚪", color: 0xb0b0b8 },
   bronze: { id: "bronze", name: "Bronze", glyph: "🟫", color: 0xa3713c },
   bronze_tools: { id: "bronze_tools", name: "Bronze Tools", glyph: "⚒️", color: 0x9c6b3a },
+  // iron chain (Iron Age)
+  iron: { id: "iron", name: "Iron", glyph: "🩶", color: 0x8a8f98 },
+  iron_tools: { id: "iron_tools", name: "Iron Tools", glyph: "🛠️", color: 0x787e87 },
 };
 
 /**
@@ -44,6 +47,7 @@ export function emptyStock(): Record<ResourceId, number> {
     wood: 0, stone: 0, food: 0, tools: 0,
     grain: 0, game: 0, reeds: 0, sand: 0, ore: 0,
     copper: 0, tin: 0, bronze: 0, bronze_tools: 0,
+    iron: 0, iron_tools: 0,
   };
 }
 

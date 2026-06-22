@@ -39,6 +39,13 @@ export const TIERS: TierDef[] = [
     tax: 0.05,
     needs: { food: 0.013, tools: 0.005, stone: 0.003 },
   },
+  {
+    id: 4,
+    name: "Townsfolk",
+    capacityMult: 3.2,
+    tax: 0.075,
+    needs: { food: 0.014, tools: 0.005, iron_tools: 0.004 },
+  },
 ];
 
 export function tierOf(b: BuildingInstance): TierDef {
