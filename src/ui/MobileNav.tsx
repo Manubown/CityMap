@@ -26,6 +26,8 @@ export function MobileNav() {
   const minute = useGameStore((s) => s.timeMinute);
   const day = useGameStore((s) => s.dayNum);
   const night = useGameStore((s) => s.isNight);
+  const seasonEmoji = useGameStore((s) => s.seasonEmoji);
+  const seasonName = useGameStore((s) => s.seasonName);
 
   const go = (fn: () => void) => () => {
     fn();
@@ -43,7 +45,7 @@ export function MobileNav() {
         <div className="mobile-drawer-backdrop" onClick={() => setOpen(false)}>
           <div className="mobile-drawer panel" onClick={(e) => e.stopPropagation()}>
             <div className="md-clock">
-              {night ? "🌙" : "☀️"} {hh}:{mm} · Day {day}
+              {night ? "🌙" : "☀️"} {hh}:{mm} · Day {day} · {seasonEmoji} {seasonName}
             </div>
             <div className="md-speed">
               <span>Speed</span>

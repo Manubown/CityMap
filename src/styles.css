@@ -175,6 +175,13 @@ button:hover {
   opacity: 0.65;
 }
 
+.clock-season {
+  font-size: 12px;
+  font-weight: 600;
+  padding-left: 8px;
+  border-left: 1px solid var(--panel-border);
+}
+
 /* --- build bar --- */
 .build-area {
   position: absolute;

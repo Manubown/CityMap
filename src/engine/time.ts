@@ -75,3 +75,36 @@ export function dayTint(tick: number): number {
   }
   return 0xffffff;
 }
+
+// --- seasons ---------------------------------------------------------------
+export const SEASON_DAYS = 6; // days per season (a 24-day year)
+
+export interface Season {
+  index: number;
+  name: string;
+  emoji: string;
+}
+
+const SEASONS: Season[] = [
+  { index: 0, name: "Spring", emoji: "🌱" },
+  { index: 1, name: "Summer", emoji: "☀️" },
+  { index: 2, name: "Autumn", emoji: "🍂" },
+  { index: 3, name: "Winter", emoji: "❄️" },
+];
+
+// Subtle per-season tints (multiplied with the day/night tint).
+const SEASON_TINTS = [0xe2f6df, 0xfff8e6, 0xffe5c4, 0xdbe7ff];
+
+export function season(tick: number): Season {
+  return SEASONS[Math.floor((dayNumber(tick) - 1) / SEASON_DAYS) % 4];
+}
+
+function multiplyColor(a: number, b: number): number {
+  const ch = (sh: number) => Math.round((((a >> sh) & 0xff) * ((b >> sh) & 0xff)) / 255);
+  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+/** Combined day/night + seasonal tint for the world container. */
+export function worldTint(tick: number): number {
+  return multiplyColor(dayTint(tick), SEASON_TINTS[season(tick).index]);
+}

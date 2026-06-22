@@ -52,7 +52,7 @@ import { buyResource, sellResource, TRADE_BATCH } from "../engine/economy/trade"
 import { npcBuy, npcSell } from "../engine/npc/trade";
 import { addContract, removeContract } from "../engine/systems/contracts";
 import { AGE_NAMES, TECHS, canResearch, completeTech } from "../engine/research/techs";
-import { clockHM, calendar, isNight } from "../engine/time";
+import { clockHM, calendar, isNight, season } from "../engine/time";
 import {
   SKILL_TREE,
   aggregateSkillEffects,
@@ -650,6 +650,8 @@ export class GameController {
       monthNum: calendar(this.state.tick).month,
       dayOfMonth: calendar(this.state.tick).dayOfMonth,
       isNight: isNight(this.state.tick),
+      seasonName: season(this.state.tick).name,
+      seasonEmoji: season(this.state.tick).emoji,
       age: this.state.research.age,
       ageName: AGE_NAMES[this.state.research.age] ?? `Age ${this.state.research.age}`,
       researchPoints: Math.floor(this.state.research.points),

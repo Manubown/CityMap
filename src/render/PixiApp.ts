@@ -8,7 +8,7 @@
 import { Application, Assets, Container, type Texture } from "pixi.js";
 import type { BuildingTypeId, GridPos, Region } from "../engine/types";
 import { TILE_W, TILE_H, gridToScreen } from "../engine/iso";
-import { dayTint } from "../engine/time";
+import { worldTint } from "../engine/time";
 import { tileAt } from "../engine/map/generate";
 import { getBuildingDef } from "../engine/buildings/registry";
 import { TERRAIN_COLORS } from "./shapes";
@@ -147,9 +147,9 @@ export class GameRenderer {
     this.agentLayer.update(this.region, fraction);
   }
 
-  /** Tint the world for the time of day (day/night cycle). */
+  /** Tint the world for the time of day + season. */
   setDayNight(tick: number): void {
-    this.world.tint = dayTint(tick);
+    this.world.tint = worldTint(tick);
   }
 
   /** Centre the camera on a fraction (0..1) of the region's grid (minimap jump). */

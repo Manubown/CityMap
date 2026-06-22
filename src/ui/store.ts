@@ -180,6 +180,8 @@ export interface GameStore {
   monthNum: number;
   dayOfMonth: number;
   isNight: boolean;
+  seasonName: string;
+  seasonEmoji: string;
   // research / progression
   age: number;
   ageName: string;
@@ -263,6 +265,8 @@ export const useGameStore = create<GameStore>((set) => ({
   monthNum: 1,
   dayOfMonth: 1,
   isNight: false,
+  seasonName: "Spring",
+  seasonEmoji: "🌱",
   age: 1,
   ageName: "Stone Age",
   researchPoints: 0,

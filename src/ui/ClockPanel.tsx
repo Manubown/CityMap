@@ -7,6 +7,8 @@ export function ClockPanel() {
   const month = useGameStore((s) => s.monthNum);
   const dayOfMonth = useGameStore((s) => s.dayOfMonth);
   const night = useGameStore((s) => s.isNight);
+  const seasonName = useGameStore((s) => s.seasonName);
+  const seasonEmoji = useGameStore((s) => s.seasonEmoji);
 
   const hh = String(hour).padStart(2, "0");
   const mm = String(minute).padStart(2, "0");
@@ -20,6 +22,9 @@ export function ClockPanel() {
       <span className="clock-date">
         Month {month} · Day {dayOfMonth}
         <small> (#{day})</small>
+      </span>
+      <span className="clock-season">
+        {seasonEmoji} {seasonName}
       </span>
     </div>
   );
