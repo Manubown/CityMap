@@ -17,10 +17,15 @@ const LIFT = 9; // px above the tile centre so dots sit on the ground
 export class AgentLayer {
   readonly container = new Container();
   private pool: { g: Graphics; color: number }[] = [];
+  private ring = new Graphics();
 
   constructor() {
     this.container.sortableChildren = true;
     this.container.label = "agents";
+    this.ring.circle(0, -LIFT + 1, RADIUS + 4).stroke({ color: 0xffe066, width: 2.5 });
+    this.ring.visible = false;
+    this.ring.zIndex = 1e6;
+    this.container.addChild(this.ring);
   }
 
   private redraw(g: Graphics, color: number): void {
@@ -35,7 +40,7 @@ export class AgentLayer {
       .stroke({ color: 0x10161d, width: 1.2 });
   }
 
-  update(region: Region | null, fraction: number): void {
+  update(region: Region | null, fraction: number, selectedId: number | null = null): void {
     const agents = region ? region.agents : [];
 
     while (this.pool.length < agents.length) {
@@ -45,6 +50,9 @@ export class AgentLayer {
       this.pool.push({ g, color: 0xffffff });
     }
 
+    let selX = 0;
+    let selY = 0;
+    let selFound = false;
     for (let i = 0; i < this.pool.length; i++) {
       const slot = this.pool[i];
       if (i >= agents.length) {
@@ -63,9 +71,19 @@ export class AgentLayer {
       const vp = Math.min(1, a.progress + fraction * MOVE_STEP);
       const p0 = gridToScreen(a.col, a.row);
       const p1 = gridToScreen(a.ncol, a.nrow);
-      slot.g.position.set(p0.x + (p1.x - p0.x) * vp, p0.y + (p1.y - p0.y) * vp);
+      const x = p0.x + (p1.x - p0.x) * vp;
+      const y = p0.y + (p1.y - p0.y) * vp;
+      slot.g.position.set(x, y);
       slot.g.zIndex = a.col + a.row;
+      if (a.id === selectedId) {
+        selX = x;
+        selY = y;
+        selFound = true;
+      }
     }
+
+    this.ring.visible = selFound;
+    if (selFound) this.ring.position.set(selX, selY);
   }
 
   clear(): void {

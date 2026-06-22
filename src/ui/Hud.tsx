@@ -13,6 +13,7 @@ import { InstructionCard } from "./InstructionCard";
 import { ClockPanel } from "./ClockPanel";
 import { SettingsModal, SpeedControls } from "./SettingsModal";
 import { Minimap } from "./Minimap";
+import { VillagerPanel } from "./VillagerPanel";
 import { MobileNav, useIsMobile } from "./MobileNav";
 
 export function Hud() {
@@ -65,6 +66,7 @@ export function Hud() {
 
       <Minimap />
       <SelectionPanel />
+      <VillagerPanel />
       <BuildBar />
 
       <InstructionCard />

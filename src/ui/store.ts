@@ -62,6 +62,14 @@ export interface SelectedInfo {
   upgradeOptions: UpgradeOption[];
 }
 
+export interface AgentInfo {
+  name: string;
+  job: string;
+  home: string;
+  activity: string;
+  mood: string;
+}
+
 export interface RegionInfo {
   id: string;
   name: string;
@@ -164,6 +172,7 @@ export interface GameStore {
   infoHidden: boolean;
   hover: GridPos | null;
   selected: SelectedInfo | null;
+  selectedAgent: AgentInfo | null;
   message: string | null;
   regions: RegionInfo[];
   activeRegionId: string;
@@ -250,6 +259,7 @@ export const useGameStore = create<GameStore>((set) => ({
   infoHidden: false,
   hover: null,
   selected: null,
+  selectedAgent: null,
   message: null,
   regions: [],
   activeRegionId: "",

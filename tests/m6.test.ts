@@ -2,7 +2,16 @@ import { describe, it, expect } from "vitest";
 import { createGame } from "../src/engine/world";
 import { stepGame } from "../src/engine/tick";
 import { stepAgents, AGENT_CAP } from "../src/engine/systems/agents";
+import { villagerName } from "../src/engine/agents/names";
 import type { Agent } from "../src/engine/types";
+
+describe("villager identity", () => {
+  it("names are deterministic and varied", () => {
+    expect(villagerName(0)).toBe(villagerName(0));
+    expect(villagerName(0)).not.toBe(villagerName(1));
+    expect(villagerName(7)).toMatch(/\w+ \w+/);
+  });
+});
 
 const norm = (ag: Agent[]) =>
   ag.map((x) => `${x.id}:${x.col},${x.row}>${x.ncol},${x.nrow}:${x.state}`).join("|");

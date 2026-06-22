@@ -48,6 +48,7 @@ export class GameRenderer {
   private elapsed = 0;
   private camera!: Camera;
   private region: Region | null = null;
+  private selectedAgentId: number | null = null;
   private initialized = false;
   private textures = new Map<string, Texture>();
 
@@ -144,7 +145,11 @@ export class GameRenderer {
 
   /** Reposition villager dots, interpolated by the sim-clock fraction (0..1). */
   updateAgents(fraction: number): void {
-    this.agentLayer.update(this.region, fraction);
+    this.agentLayer.update(this.region, fraction, this.selectedAgentId);
+  }
+
+  setSelectedAgent(id: number | null): void {
+    this.selectedAgentId = id;
   }
 
   /** Tint the world for the time of day + season. */

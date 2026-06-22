@@ -10,7 +10,8 @@ import { GameRenderer } from "../render/PixiApp";
 import { SimClock, stepGame, TICK_RATE } from "../engine/tick";
 import { resourceFlows } from "../engine/stats";
 import { QUESTS, questRewardLabel } from "../engine/quests";
-import { RESOURCES } from "../engine/economy/resources";
+import { RESOURCES, totalFood } from "../engine/economy/resources";
+import { villagerName } from "../engine/agents/names";
 import {
   activeRegion,
   buildingAt,
@@ -87,6 +88,7 @@ export class GameController {
   private clock = new SimClock();
   private state!: GameState;
   private selectedId: string | null = null;
+  private selectedAgentId: number | null = null;
   private buildFacing = 0;
   private speed = 1;
   private minimapCanvas: HTMLCanvasElement | null = null;
@@ -226,9 +228,60 @@ export class GameController {
 
   private selectAt(tile: GridPos): void {
     const b = buildingAt(this.region, tile.col, tile.row);
-    this.selectedId = b?.id ?? null;
+    if (b) {
+      this.selectedId = b.id;
+      this.selectedAgentId = null;
+    } else {
+      // no building — try to pick a nearby villager
+      const agent = this.region.agents.find(
+        (a) => Math.abs(a.col - tile.col) + Math.abs(a.row - tile.row) <= 1,
+      );
+      this.selectedId = null;
+      this.selectedAgentId = agent ? agent.id : null;
+    }
     this.renderer.setSelection(this.selectedId);
+    this.renderer.setSelectedAgent(this.selectedAgentId);
     this.pushSnapshot();
+  }
+
+  private buildSelectedAgent(): {
+    name: string;
+    job: string;
+    home: string;
+    activity: string;
+    mood: string;
+  } | null {
+    if (this.selectedAgentId == null) return null;
+    const a = this.region.agents.find((x) => x.id === this.selectedAgentId);
+    if (!a) return null;
+    const homeB = this.region.buildings[a.homeId];
+    const job =
+      a.role === "resident"
+        ? "Villager (no trade)"
+        : `Works at the ${getBuildingDef(a.role as BuildingTypeId).name}`;
+    const activity =
+      a.state === "toWork"
+        ? "🚶 Heading to work"
+        : a.state === "working"
+          ? "🔨 At work"
+          : a.state === "toHome"
+            ? "🚶 Heading home"
+            : isNight(this.state.tick)
+              ? "😴 Asleep at home"
+              : "🏠 At home";
+    const mood =
+      totalFood(this.region.stock) < 1
+        ? "😟 Hungry"
+        : this.region.population > housingCapacity(this.region)
+          ? "😣 Cramped"
+          : "😊 Content";
+    return {
+      name: villagerName(a.id),
+      job,
+      home: homeB ? getBuildingDef(homeB.type).name : "—",
+      activity,
+      mood,
+    };
   }
 
   // --- store actions ------------------------------------------------------
@@ -251,7 +304,9 @@ export class GameController {
       minimapJump: (fx, fy) => this.renderer.panToFraction(fx, fy),
       clearSelection: () => {
         this.selectedId = null;
+        this.selectedAgentId = null;
         this.renderer.setSelection(null);
+        this.renderer.setSelectedAgent(null);
         this.pushSnapshot();
       },
       deleteSelected: () => this.deleteSelected(),
@@ -621,6 +676,7 @@ export class GameController {
       running: this.clock.isRunning(),
       gameSpeed: this.speed,
       selected: this.buildSelectedInfo(),
+      selectedAgent: this.buildSelectedAgent(),
       canTrade: this.hasMarket(region),
       flows: this.buildFlows(region),
       quests: QUESTS.filter((q) => !this.state.completedQuests.includes(q.id))

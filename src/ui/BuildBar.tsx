@@ -76,6 +76,7 @@ export function BuildBar() {
   const unlockedSkills = useGameStore((s) => s.unlockedSkills);
   const techs = useGameStore((s) => s.techs);
   const selected = useGameStore((s) => s.selected);
+  const selectedAgent = useGameStore((s) => s.selectedAgent);
   const setBuildMode = useGameStore((s) => s.setBuildMode);
   const cancelBuild = useGameStore((s) => s.cancelBuild);
   const toggleClear = useGameStore((s) => s.toggleClear);
@@ -107,7 +108,7 @@ export function BuildBar() {
   if (isMobile && !sheetOpen) {
     return (
       <>
-        {detailId && !selected && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
+        {detailId && !selected && !selectedAgent && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
         <button className="mobile-build-btn panel" onClick={() => setSheetOpen(true)}>
           🔨 Build
         </button>
@@ -117,7 +118,7 @@ export function BuildBar() {
 
   return (
     <>
-      {detailId && !selected && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
+      {detailId && !selected && !selectedAgent && <DetailCard def={BUILDINGS[detailId]} techName={techName} />}
 
       <div className={`build-area${isMobile ? " sheet" : ""}`}>
         {isMobile && (
