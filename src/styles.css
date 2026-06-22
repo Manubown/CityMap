@@ -788,6 +788,10 @@ button:hover {
   color: #f0d68a;
 }
 
+.rep-bonus {
+  color: var(--accent);
+}
+
 .npc-deals {
   margin-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);

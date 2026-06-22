@@ -549,7 +549,9 @@ export class GameController {
       kind: r.kind,
       discovered: r.discovered,
       worldPos: r.worldPos,
-      npc: r.npc ? { reputation: r.npc.reputation, prices: r.npc.prices } : undefined,
+      npc: r.npc
+        ? { reputation: r.npc.reputation, population: r.npc.population, prices: r.npc.prices }
+        : undefined,
     }));
     const routes = this.state.routes.map((rt) => {
       const rf = getRegion(this.state, rt.fromRegion);

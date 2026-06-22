@@ -73,8 +73,12 @@ export interface RegionInfo {
   kind: RegionKind;
   discovered: boolean;
   worldPos: WorldCoord;
-  /** Present for NPC settlements: their reputation + current prices. */
-  npc?: { reputation: number; prices: Record<ResourceId, { buy: number; sell: number }> };
+  /** Present for NPC settlements: reputation, size, and current prices. */
+  npc?: {
+    reputation: number;
+    population: number;
+    prices: Record<ResourceId, { buy: number; sell: number }>;
+  };
 }
 
 export type ViewMode = "city" | "strategic" | "skills" | "stats";

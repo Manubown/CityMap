@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useGameStore, type RegionInfo, type ContractInfo } from "./store";
 import type { BiomeId, ResourceId } from "../engine/types";
 import { RESOURCES } from "../engine/economy/resources";
+import { repModifier, repTier } from "../engine/npc/trade";
 
 const BIOME_COLORS: Record<BiomeId, string> = {
   plains: "#8bbf5a",
@@ -180,9 +181,23 @@ function NodeDetail({
       {node.kind === "npc" && node.npc && (
         <>
           <div className="sp-row">
-            <span>Reputation</span>
-            <b>{node.npc.reputation}</b>
+            <span>Standing</span>
+            <b>
+              {repTier(node.npc.reputation)} · ★ {node.npc.reputation}
+            </b>
           </div>
+          <div className="sp-row">
+            <span>Population</span>
+            <b>👥 {node.npc.population}</b>
+          </div>
+          {node.npc.reputation > 0 && (
+            <div className="sp-row">
+              <span>Trade bonus</span>
+              <b className="rep-bonus">
+                {Math.round((repModifier(node.npc.reputation).sellMult - 1) * 100)}% in your favour
+              </b>
+            </div>
+          )}
 
           {!canTrade && (
             <div className="trade-warn">⚠ Build a Trading Post in your city to trade here.</div>
@@ -211,6 +226,9 @@ function NodeDetail({
           <div className="npc-trade">
             {TRADEABLE.map((id) => {
               const price = node.npc!.prices[id];
+              const mod = repModifier(node.npc!.reputation);
+              const sell = Math.round(price.sell * mod.sellMult * qty);
+              const buy = Math.round(price.buy * mod.buyMult * qty);
               return (
                 <div className="trade-row" key={id}>
                   <span className="t-glyph" title={RESOURCES[id].name}>
@@ -221,14 +239,14 @@ function NodeDetail({
                     disabled={!canTrade}
                     onClick={() => onTrade(node.id, id, "sell", qty)}
                   >
-                    Sell +{price.sell * qty}
+                    Sell +{sell}
                   </button>
                   <button
                     className="t-buy"
-                    disabled={!canTrade || coins < price.buy * qty}
+                    disabled={!canTrade || coins < buy}
                     onClick={() => onTrade(node.id, id, "buy", qty)}
                   >
-                    Buy −{price.buy * qty}
+                    Buy −{buy}
                   </button>
                 </div>
               );

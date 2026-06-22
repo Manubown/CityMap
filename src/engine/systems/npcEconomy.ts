@@ -17,9 +17,15 @@ export function stepNpcEconomy(state: GameState): void {
     const rng = createRng((state.worldSeed ^ hashCoord(r.worldPos) ^ state.tick) >>> 0);
     for (const id of Object.keys(r.npc.prices) as ResourceId[]) {
       const p = r.npc.prices[id];
-      const drift = 0.95 + rng.next() * 0.1; // 0.95 .. 1.05
+      const base = r.npc.basePrices[id];
+      // mean-revert 20% toward baseline (undo the pull from your trades)...
+      p.buy = p.buy + (base.buy - p.buy) * 0.2;
+      p.sell = p.sell + (base.sell - p.sell) * 0.2;
+      // ...then a small random drift.
+      const drift = 0.97 + rng.next() * 0.06; // 0.97 .. 1.03
       p.buy = Math.max(2, Math.round(p.buy * drift));
-      p.sell = Math.max(1, Math.min(p.sell, p.buy - 1));
+      p.sell = Math.max(1, Math.min(Math.round(p.sell), p.buy - 1));
     }
+    r.npc.population = Math.min(999, r.npc.population + 1); // settlements grow
   }
 }

@@ -28,8 +28,8 @@ import { makeNpcState } from "./npc/archetypes";
 import { aggregateSkillEffects } from "./skills/skilltree";
 
 // v6: world. v7: contracts. v8: construction. v9: Iron Age. v10: cloth + glass.
-// v11: objective quests. Mismatched saves are dropped (pre-release).
-export const STATE_VERSION = 11;
+// v11: quests. v12: living NPC markets (basePrices + population).
+export const STATE_VERSION = 12;
 
 /** Anchor tile uniquely identifies a building within its region. */
 function buildingId(col: number, row: number): string {

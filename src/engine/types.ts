@@ -189,8 +189,12 @@ export interface Agent {
 export interface NpcState {
   archetype: string;
   reputation: number;
+  /** The settlement's size; grows over time (a "living" signal). */
+  population: number;
   /** Complete-by-construction over ResourceId to avoid NaN coins. */
   prices: Record<ResourceId, { buy: number; sell: number }>;
+  /** Baseline prices the market mean-reverts toward after your trades move it. */
+  basePrices: Record<ResourceId, { buy: number; sell: number }>;
 }
 
 /** A region: its own land, buildings, stockpile and population, sited on the world. */

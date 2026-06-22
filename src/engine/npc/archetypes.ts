@@ -47,5 +47,7 @@ export function makeNpcState(biome: BiomeId, rng: Rng): NpcState {
     const sell = Math.max(1, Math.round(base.sell * jitter * (specialty ? 0.85 : 1)));
     prices[id] = { buy, sell };
   }
-  return { archetype: arch.name, reputation: 0, prices };
+  const basePrices = JSON.parse(JSON.stringify(prices)) as typeof prices;
+  const population = 20 + Math.floor(rng.next() * 40);
+  return { archetype: arch.name, reputation: 0, population, prices, basePrices };
 }
